@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Centralizador de documentação das APIs Controle, People Hub, Performance, Acompanhamento e PDI."
+      content="Centralizador de documentação das APIs Controle, People Hub, Performance, Metas (Acompanhamento) e PDI."
     />
     <title>Centralizador de Documentação de APIs | Mindsight</title>
 
@@ -927,14 +927,15 @@
         <h1>Centralizador de Documentação de APIs</h1>
         <p>
           Este guia de autenticação OAuth 2.0 atende às APIs de People Hub,
-          Acompanhamento, Controle e Performance. Mindmatch e ATS possuem instruções de
+          Metas, Controle, Performance e PDI. Mindmatch e ATS possuem instruções de
           autenticação próprias, acessíveis nos botões tracejados abaixo.
         </p>
         <div class="chips" aria-label="APIs disponíveis">
           <a class="chip" href="https://controle.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Controle</a>
           <a class="chip" href="https://hub.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">People Hub</a>
           <a class="chip" href="https://performance.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Performance</a>
-          <a class="chip" href="https://acompanhamento.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Acompanhamento</a>
+          <a class="chip" href="https://acompanhamento.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer" aria-label="Abrir documentação de Metas (Acompanhamento)">Metas</a>
+          <a class="chip" href="https://acompanhamento.mindsight.com.br/mindsight/external/pdi/v1/docs/" target="_blank" rel="noopener noreferrer">PDI</a>
           <a class="chip chip--alternate" href="./mindmatch/" aria-label="Abrir instruções de autenticação do Mindmatch">Mindmatch</a>
           <a class="chip chip--alternate" href="./ats/" aria-label="Abrir instruções de autenticação do ATS">ATS</a>
         </div>
@@ -957,7 +958,7 @@
         <section id="visao-geral">
           <h2>Visão geral</h2>
           <p class="lead">
-            Esta documentação de autenticação é válida para os endpoints das quatro APIs
+            Esta documentação de autenticação é válida para os endpoints das cinco APIs
             abaixo:
           </p>
 
@@ -970,7 +971,7 @@
             </li>
             <li>
               <a href="https://acompanhamento.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">
-                <strong>Acompanhamento ↗</strong>
+                <strong>Metas (Acompanhamento) ↗</strong>
                 <span>acompanhamento.mindsight.com.br/mindsight/external/v1/docs/</span>
               </a>
             </li>
@@ -984,6 +985,12 @@
               <a href="https://performance.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">
                 <strong>Performance ↗</strong>
                 <span>performance.mindsight.com.br/mindsight/external/v1/docs/</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://acompanhamento.mindsight.com.br/mindsight/external/pdi/v1/docs/" target="_blank" rel="noopener noreferrer">
+                <strong>PDI ↗</strong>
+                <span>acompanhamento.mindsight.com.br/mindsight/external/pdi/v1/docs/</span>
               </a>
             </li>
           </ul>
@@ -1000,7 +1007,7 @@
           </div>
 
           <p>
-            Para autenticar nessas quatro APIs, primeiro obtenha um
+            Para autenticar nessas cinco APIs, primeiro obtenha um
             <strong>Access Token</strong> utilizando o <code>client_id</code> e o
             <code>client_secret</code> fornecidos. O endpoint de autenticação é separado dos
             endpoints funcionais apresentados em cada documentação.
@@ -1162,9 +1169,10 @@ dados = api_response.json()</code></pre>
           </p>
           <ul class="next-step__links" aria-label="Documentações das APIs compatíveis">
             <li><a href="https://hub.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">People Hub ↗</a></li>
-            <li><a href="https://acompanhamento.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Acompanhamento ↗</a></li>
+            <li><a href="https://acompanhamento.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Metas (Acompanhamento) ↗</a></li>
             <li><a href="https://controle.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Controle ↗</a></li>
             <li><a href="https://performance.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Performance ↗</a></li>
+            <li><a href="https://acompanhamento.mindsight.com.br/mindsight/external/pdi/v1/docs/" target="_blank" rel="noopener noreferrer">PDI ↗</a></li>
           </ul>
           <p class="next-step__warning">
             <strong>Vai integrar com ATS ou Mindmatch?</strong> Essas APIs usam outro tipo
@@ -1173,7 +1181,7 @@ dados = api_response.json()</code></pre>
         </aside>
 
         <footer>
-          APIs People Hub, Acompanhamento, Controle e Performance · Guia de autenticação
+          APIs People Hub, Metas (Acompanhamento), Controle, Performance e PDI · Guia de autenticação
         </footer>
       </main>
     </div>
