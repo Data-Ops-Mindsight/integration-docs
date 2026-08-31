@@ -433,6 +433,12 @@
         font-size: 0.91rem;
       }
 
+      .callout a {
+        color: inherit;
+        font-weight: 750;
+        text-underline-offset: 3px;
+      }
+
       .api-list {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -998,10 +1004,15 @@
           <div class="callout" role="note">
             <span class="callout__icon" aria-hidden="true">⚠</span>
             <div>
-              <strong>Importante: ATS e Mindmatch usam outra autenticação</strong>
+              <strong>
+                Importante: <a href="https://documenter.getpostman.com/view/48297903/2sB3HqHdmr" target="_blank" rel="noopener noreferrer">ATS</a>
+                e <a href="https://documenter.getpostman.com/view/32425521/2s9YysDhNG" target="_blank" rel="noopener noreferrer">Mindmatch</a>
+                usam outra autenticação
+              </strong>
               <p>
                 As APIs do ATS e do Mindmatch não utilizam o fluxo descrito nesta página.
-                Consulte a documentação específica desses produtos antes de integrar.
+                Consulte a <a href="https://documenter.getpostman.com/view/48297903/2sB3HqHdmr" target="_blank" rel="noopener noreferrer">documentação do ATS</a>
+                ou a <a href="https://documenter.getpostman.com/view/32425521/2s9YysDhNG" target="_blank" rel="noopener noreferrer">documentação do Mindmatch</a> antes de integrar.
               </p>
             </div>
           </div>
