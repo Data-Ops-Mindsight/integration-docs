@@ -417,6 +417,49 @@
         font-size: 0.91rem;
       }
 
+      .api-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 24px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .api-list a {
+        display: block;
+        height: 100%;
+        padding: 18px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+        text-decoration: none;
+        transition: 160ms ease;
+      }
+
+      .api-list a:hover {
+        border-color: var(--primary);
+        box-shadow: 0 12px 28px rgba(43, 27, 58, 0.08);
+        transform: translateY(-2px);
+      }
+
+      .api-list strong,
+      .api-list span {
+        display: block;
+      }
+
+      .api-list strong {
+        margin-bottom: 4px;
+        color: var(--primary-dark);
+      }
+
+      .api-list span {
+        overflow-wrap: anywhere;
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.74rem;
+      }
+
       .next-step {
         margin-top: 58px;
         padding: 32px;
@@ -434,6 +477,37 @@
         max-width: 600px;
         margin: 0;
         color: #e9def8;
+      }
+
+      .next-step__links {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin: 22px 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .next-step__links a {
+        display: block;
+        padding: 11px 13px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .next-step__links a:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      .next-step .next-step__warning {
+        max-width: none;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
       }
 
       footer {
@@ -460,6 +534,11 @@
         }
 
         .steps {
+          grid-template-columns: 1fr;
+        }
+
+        .api-list,
+        .next-step__links {
           grid-template-columns: 1fr;
         }
       }
@@ -820,15 +899,14 @@
         <p class="eyebrow">Documentação técnica</p>
         <h1>Centralizador de Documentação de APIs</h1>
         <p>
-          Encontre os guias de integração e autenticação dos produtos Mindsight em um único
-          lugar.
+          Este guia de autenticação OAuth 2.0 atende às APIs de People Hub,
+          Acompanhamento, Controle e Performance.
         </p>
         <div class="chips" aria-label="Produtos disponíveis">
           <span class="chip">Controle</span>
           <span class="chip">People Hub</span>
           <span class="chip">Performance</span>
           <span class="chip">Acompanhamento</span>
-          <span class="chip">PDI</span>
         </div>
       </div>
     </header>
@@ -849,13 +927,53 @@
         <section id="visao-geral">
           <h2>Visão geral</h2>
           <p class="lead">
-            Para realizar a autenticação das APIs do Controle e People Hub, primeiro é
-            necessário obter um <strong>Access Token</strong> utilizando o
-            <code>client_id</code> e o <code>client_secret</code> fornecidos.
+            Esta documentação de autenticação é válida para os endpoints das quatro APIs
+            abaixo:
           </p>
+
+          <ul class="api-list" aria-label="APIs que utilizam esta autenticação">
+            <li>
+              <a href="https://hub.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">
+                <strong>People Hub ↗</strong>
+                <span>hub.mindsight.com.br/mindsight/external/v1/docs/</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://acompanhamento.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">
+                <strong>Acompanhamento ↗</strong>
+                <span>acompanhamento.mindsight.com.br/mindsight/external/v1/docs/</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://controle.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">
+                <strong>Controle ↗</strong>
+                <span>controle.mindsight.com.br/mindsight/external/v1/docs/</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://performance.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">
+                <strong>Performance ↗</strong>
+                <span>performance.mindsight.com.br/mindsight/external/v1/docs/</span>
+              </a>
+            </li>
+          </ul>
+
+          <div class="callout" role="note">
+            <span class="callout__icon" aria-hidden="true">⚠</span>
+            <div>
+              <strong>Importante: ATS e Mindmatch usam outra autenticação</strong>
+              <p>
+                As APIs do ATS e do Mindmatch não utilizam o fluxo descrito nesta página.
+                Consulte a documentação específica desses produtos antes de integrar.
+              </p>
+            </div>
+          </div>
+
           <p>
-            O endpoint de autenticação é separado dos endpoints funcionais apresentados na
-            documentação da API.
+            Para autenticar nessas quatro APIs, primeiro obtenha um
+            <strong>Access Token</strong> utilizando o <code>client_id</code> e o
+            <code>client_secret</code> fornecidos. O endpoint de autenticação é separado dos
+            endpoints funcionais apresentados em cada documentação.
           </p>
 
           <div class="steps" aria-label="Etapas da autenticação">
@@ -997,15 +1115,24 @@ dados = api_response.json()</code></pre>
         </section>
 
         <aside class="next-step">
-          <h2>Próximo passo</h2>
+          <h2>Próximos passos</h2>
           <p>
-            Com o token em mãos, consulte a documentação do Controle ou People Hub para
-            escolher o endpoint desejado e realizar sua primeira integração.
+            Com o token em mãos, escolha uma das APIs compatíveis e consulte seus endpoints:
+          </p>
+          <ul class="next-step__links" aria-label="Documentações das APIs compatíveis">
+            <li><a href="https://hub.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">People Hub ↗</a></li>
+            <li><a href="https://acompanhamento.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Acompanhamento ↗</a></li>
+            <li><a href="https://controle.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Controle ↗</a></li>
+            <li><a href="https://performance.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Performance ↗</a></li>
+          </ul>
+          <p class="next-step__warning">
+            <strong>Vai integrar com ATS ou Mindmatch?</strong> Essas APIs usam outro tipo
+            de autenticação; siga a documentação específica do produto.
           </p>
         </aside>
 
         <footer>
-          APIs Controle e People Hub · Guia de autenticação
+          APIs People Hub, Acompanhamento, Controle e Performance · Guia de autenticação
         </footer>
       </main>
     </div>
