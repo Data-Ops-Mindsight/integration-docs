@@ -215,6 +215,8 @@
       }
 
       .chip {
+        display: inline-flex;
+        align-items: center;
         padding: 7px 11px;
         border: 1px solid var(--border);
         border-radius: 999px;
@@ -223,6 +225,16 @@
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         font-size: 0.78rem;
         font-weight: 650;
+        text-decoration: none;
+        transition: 160ms ease;
+      }
+
+      .chip:hover,
+      .chip:focus-visible {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
       }
 
       section {
@@ -768,6 +780,13 @@
         backdrop-filter: blur(8px);
       }
 
+      .chip:hover,
+      .chip:focus-visible {
+        border-color: rgba(255, 255, 255, 0.7);
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+
       .layout {
         padding-top: 88px;
       }
@@ -903,10 +922,10 @@
           Acompanhamento, Controle e Performance.
         </p>
         <div class="chips" aria-label="Produtos disponíveis">
-          <span class="chip">Controle</span>
-          <span class="chip">People Hub</span>
-          <span class="chip">Performance</span>
-          <span class="chip">Acompanhamento</span>
+          <a class="chip" href="https://controle.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Controle</a>
+          <a class="chip" href="https://hub.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">People Hub</a>
+          <a class="chip" href="https://performance.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Performance</a>
+          <a class="chip" href="https://acompanhamento.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Acompanhamento</a>
         </div>
       </div>
     </header>
