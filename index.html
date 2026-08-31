@@ -237,6 +237,10 @@
         transform: translateY(-2px);
       }
 
+      .chip--alternate {
+        border-style: dashed;
+      }
+
       section {
         scroll-margin-top: 100px;
         margin-top: 54px;
@@ -787,6 +791,10 @@
         color: #fff;
       }
 
+      .chip--alternate {
+        border-color: rgba(255, 255, 255, 0.45);
+      }
+
       .layout {
         padding-top: 88px;
       }
@@ -919,13 +927,16 @@
         <h1>Centralizador de Documentação de APIs</h1>
         <p>
           Este guia de autenticação OAuth 2.0 atende às APIs de People Hub,
-          Acompanhamento, Controle e Performance.
+          Acompanhamento, Controle e Performance. Mindmatch e ATS possuem instruções de
+          autenticação próprias, acessíveis nos botões tracejados abaixo.
         </p>
-        <div class="chips" aria-label="Produtos disponíveis">
+        <div class="chips" aria-label="APIs disponíveis">
           <a class="chip" href="https://controle.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Controle</a>
           <a class="chip" href="https://hub.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">People Hub</a>
           <a class="chip" href="https://performance.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Performance</a>
           <a class="chip" href="https://acompanhamento.mindsight.com.br/mindsight/external/v1/docs/" target="_blank" rel="noopener noreferrer">Acompanhamento</a>
+          <a class="chip chip--alternate" href="./mindmatch/" aria-label="Abrir instruções de autenticação do Mindmatch">Mindmatch</a>
+          <a class="chip chip--alternate" href="./ats/" aria-label="Abrir instruções de autenticação do ATS">ATS</a>
         </div>
       </div>
     </header>
