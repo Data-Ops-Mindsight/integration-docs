@@ -629,6 +629,7 @@
 
       body {
         font-family: "Pathway Extreme", ui-sans-serif, system-ui, sans-serif;
+        overflow-x: hidden;
       }
 
       .announcement {
@@ -902,6 +903,158 @@
         .hero p {
           margin-top: 28px;
           font-size: 1rem;
+        }
+      }
+
+      /* Ajustes para navegação e leitura em telas pequenas */
+      @media (max-width: 860px) {
+        .layout > *,
+        main {
+          min-width: 0;
+        }
+
+        .sidebar {
+          display: block;
+          position: sticky;
+          top: 76px;
+          z-index: 8;
+          margin: -12px 0 28px;
+          padding: 12px 0 10px;
+          background: var(--background);
+        }
+
+        .sidebar__label {
+          margin-bottom: 8px;
+        }
+
+        .sidebar nav {
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          margin: 0 -2px;
+          padding: 0 2px 4px;
+          scrollbar-width: thin;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .sidebar a {
+          flex: 0 0 auto;
+          padding: 8px 11px;
+          border: 1px solid var(--border);
+          border-radius: 999px;
+          background: var(--surface);
+          white-space: nowrap;
+        }
+
+        .sidebar a:hover,
+        .sidebar a[aria-current="true"] {
+          border-color: var(--primary);
+          background: var(--primary-soft);
+        }
+
+        section {
+          scroll-margin-top: 150px;
+        }
+
+        .endpoint code {
+          min-width: 0;
+          width: 100%;
+        }
+
+        .code-block__header > span {
+          min-width: 0;
+          overflow-wrap: anywhere;
+        }
+
+        pre {
+          -webkit-overflow-scrolling: touch;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .topbar__inner,
+        .layout,
+        .announcement__inner,
+        .hero__inner {
+          width: calc(100% - 32px);
+        }
+
+        .topbar__inner {
+          min-height: 68px;
+        }
+
+        .sidebar {
+          top: 68px;
+          margin-top: -10px;
+        }
+
+        .hero {
+          min-height: 0;
+        }
+
+        .hero__inner {
+          padding: 70px 0 78px;
+        }
+
+        .eyebrow {
+          margin-bottom: 20px;
+          font-size: 0.76rem;
+        }
+
+        h1 {
+          font-size: clamp(2.35rem, 12vw, 3.7rem);
+        }
+
+        .hero p {
+          max-width: 33rem;
+          margin-top: 24px;
+          font-size: 1rem;
+        }
+
+        .chips {
+          width: 100%;
+          gap: 8px;
+          margin-top: 28px;
+        }
+
+        .chip {
+          min-height: 44px;
+          justify-content: center;
+          padding: 9px 12px;
+        }
+
+        .layout {
+          padding-top: 42px;
+          padding-bottom: 64px;
+        }
+
+        .endpoint {
+          gap: 10px;
+          margin: 18px 0;
+          padding: 15px;
+        }
+
+        .callout {
+          gap: 10px;
+          padding: 16px;
+        }
+
+        .step {
+          min-height: 0;
+          padding: 18px;
+        }
+
+        .step__number {
+          margin-bottom: 16px;
+        }
+
+        .next-step {
+          margin-top: 44px;
+          padding: 24px 18px;
+        }
+
+        footer {
+          margin-top: 44px;
         }
       }
     </style>
