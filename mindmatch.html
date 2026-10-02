@@ -1450,12 +1450,14 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
           <div class="callout" role="note">
             <span class="callout__icon" aria-hidden="true">ⓘ</span>
             <div>
-              <strong><code>external_person_id</code> / <code>external_opening_id</code> are your correlation keys</strong>
+              <strong><code>external_person_id</code> / <code>external_opening_id</code> are your correlation keys — if you set them</strong>
               <p>
-                When you create a person or an opening through the ATS API, you pass
-                your own id along with it. MindMatch echoes that id back on every
-                event below — use it to match events to your own records, instead of
-                matching by email.
+                When you create a person or an opening through the ATS API, you can
+                pass your own id along with it; MindMatch echoes it back on every
+                event below. If your integration doesn't set them, they simply come
+                back <code>null</code> — fall back to <code>person_id</code> (stable,
+                always present) or <code>candidate_uuid</code>/
+                <code>manager_feedback_page_url</code> instead.
               </p>
             </div>
           </div>
@@ -1487,21 +1489,30 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
           </div>
 
           <h3>A person was created or updated</h3>
+          <p>
+            <code>manager_feedback_page_url</code> is a stable link to this
+            candidate's report; the <code>code</code> query param is their
+            <code>candidate_uuid</code>, which also shows up on their score events
+            below — handy as a second correlation anchor alongside
+            <code>person_id</code>.
+          </p>
           <div class="code-block">
             <div class="code-block__header">
               <span>PERSON_UPDATED</span>
               <button class="copy-button" type="button">Copy</button>
             </div>
             <pre><code>{
-  "id": 6,
-  "created_at": "2024-01-26T14:00:19.749444Z",
+  "id": 9183726,
+  "created_at": "2026-09-18T14:02:11Z",
   "message": {
     "type": "PERSON_UPDATED",
     "content": {
-      "person_id": 15,
-      "person_name": "Jane Doe",
-      "external_person_id": "4",
-      "person_email": "jane@mail.com"
+      "person_id": 445821,
+      "person_cpf": "123.456.789-00",
+      "person_name": "Ana Souza",
+      "person_email": "ana.souza@example.com",
+      "external_person_id": null,
+      "manager_feedback_page_url": "https://app.mindsight.com.br/devolutiva/445821/devolutiva_gestor/?code=3f1b2c4d-9b21-4e56-8a90-7f2d5b9e1a40"
     }
   }
 }</code></pre>
@@ -1510,8 +1521,8 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
           <h3>A person was linked to an opening</h3>
           <p>
             A "subscription" is a candidate applying to (or being evaluated for) one
-            opening. This is the event that ties <code>external_person_id</code> and
-            <code>external_opening_id</code> together.
+            opening — the same fields as <code>PERSON_UPDATED</code>, plus the
+            opening side.
           </p>
           <div class="code-block">
             <div class="code-block__header">
@@ -1519,18 +1530,20 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
               <button class="copy-button" type="button">Copy</button>
             </div>
             <pre><code>{
-  "id": 7,
-  "created_at": "2024-01-26T14:00:19.798749Z",
+  "id": 9183727,
+  "created_at": "2026-09-18T14:02:40Z",
   "message": {
     "type": "SUBSCRIPTION_UPDATED",
     "content": {
-      "person_id": 15,
-      "person_name": "Jane Doe",
-      "external_person_id": "4",
-      "person_email": "jane@mail.com",
-      "opening_id": 4,
-      "external_opening_id": "3635735",
-      "opening_name": "3635735-Gerente de Produtos"
+      "person_id": 445821,
+      "opening_id": 12345,
+      "person_cpf": "123.456.789-00",
+      "person_name": "Ana Souza",
+      "opening_name": "Example Co-98765-18",
+      "person_email": "ana.souza@example.com",
+      "external_person_id": null,
+      "external_opening_id": null,
+      "manager_feedback_page_url": "https://app.mindsight.com.br/devolutiva/445821/devolutiva_gestor/?code=3f1b2c4d-9b21-4e56-8a90-7f2d5b9e1a40"
     }
   }
 }</code></pre>
@@ -1554,62 +1567,68 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
               <button class="copy-button" type="button">Copy</button>
             </div>
             <pre><code>{
-  "id": 15,
-  "created_at": "2024-01-26T14:23:48.141767Z",
+  "id": 9183731,
+  "created_at": "2026-09-18T14:05:40Z",
   "message": {
     "type": "SCORE_UPDATED",
     "content": {
-      "person_id": 15,
-      "external_person_id": "4",
-      "function_id": null,
-      "external_opening_id": "3635735",
-      "candidate_uuid": "7b76d72e-30b0-4682-bd40-5e0fd9489983",
+      "person_id": 445821,
       "score_key": "profile_map",
-      "classification": null,
-      "type_of_accessibility": null,
+      "function_id": null,
       "primary_score": null,
+      "candidate_uuid": "3f1b2c4d-9b21-4e56-8a90-7f2d5b9e1a40",
+      "classification": null,
       "secondary_score": [
         {"name": "Capacidade analítica", "value": 46.5},
         {"name": "Pensamento conceitual", "value": 51.05},
         {"name": "Comunicação", "value": 55.59}
-      ]
+      ],
+      "external_person_id": null,
+      "external_opening_id": null,
+      "type_of_accessibility": null,
+      "manager_feedback_page_url": "https://app.mindsight.com.br/devolutiva/445821/devolutiva_gestor/?code=3f1b2c4d-9b21-4e56-8a90-7f2d5b9e1a40"
     }
   }
 }</code></pre>
           </div>
 
           <p>
-            A simple score (e.g. <code>logic</code>) uses the same envelope but carries
-            its value in <code>primary_score</code> instead, and can carry a
-            <code>classification</code> label (e.g. <code>"Baixo"</code>):
+            <code>match</code> is the one score type that's always tied to an
+            opening: <code>function_id</code> says which archetype, and a person has
+            one match event per opening they were evaluated against.
           </p>
           <div class="code-block">
             <div class="code-block__header">
-              <span>SCORE_UPDATED · logic</span>
+              <span>SCORE_UPDATED · match</span>
               <button class="copy-button" type="button">Copy</button>
             </div>
             <pre><code>{
-  "id": 10,
-  "created_at": "2024-01-26T14:13:00.181664Z",
+  "id": 9183745,
+  "created_at": "2026-09-18T14:07:02Z",
   "message": {
     "type": "SCORE_UPDATED",
     "content": {
-      "person_id": 15,
-      "external_person_id": "4",
-      "function_id": null,
-      "external_opening_id": "3635735",
-      "candidate_uuid": "e87276d6-bc64-4c76-9fab-06d27e2db6df",
-      "score_key": "logic",
-      "classification": "Baixo",
+      "person_id": 445821,
+      "score_key": "match",
+      "function_id": 18508,
+      "primary_score": 81.3,
+      "candidate_uuid": "3f1b2c4d-9b21-4e56-8a90-7f2d5b9e1a40",
+      "classification": null,
       "secondary_score": null,
-      "primary_score": 10.8
+      "external_person_id": null,
+      "external_opening_id": null,
+      "type_of_accessibility": null,
+      "manager_feedback_page_url": "https://app.mindsight.com.br/devolutiva/445821/devolutiva_gestor/?code=3f1b2c4d-9b21-4e56-8a90-7f2d5b9e1a40"
     }
   }
 }</code></pre>
           </div>
 
           <p>
-            Most event types also have a <code>_DELETED</code> counterpart
+            A <code>SCORE_DELETED</code> event uses this exact same field set with
+            <code>primary_score</code>/<code>secondary_score</code> back to
+            <code>null</code> — treat it as "clear this score," not an error. Most
+            other event types also have a <code>_DELETED</code> counterpart
             (<code>PERSON_DELETED</code>, <code>SUBSCRIPTION_DELETED</code>,
             <code>SCORE_DELETED</code>, <code>FUNCTION_DELETED</code>,
             <code>OPENING_DELETED</code>) — same envelope, telling you to clear that
