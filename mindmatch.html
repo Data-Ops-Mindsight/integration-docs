@@ -1353,9 +1353,12 @@ access_token = get_access_token()</code></pre>
         <section id="functions-endpoint">
           <h2>3. List functions (archetypes)</h2>
           <p>
-            Every candidate is matched against one or more "functions" (archetypes).
-            Fetch the list once per run so you can resolve <code>function_id</code> to
-            a name.
+            Every candidate is matched against one or more "functions" (archetypes) —
+            a fixed taxonomy on Mindsight's side. Don't confuse this with an
+            <strong>opening</strong> (your own job requisition, created via the ATS
+            API, which just points at one of these functions — see
+            <a href="#data-shapes">Understand the data</a>). Fetch the function list
+            once per run so you can resolve <code>function_id</code> to a name.
           </p>
 
           <div class="endpoint" aria-label="Functions endpoint">
@@ -1440,9 +1443,48 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
           <p>
             Every event has the same envelope: an <code>id</code>, a
             <code>created_at</code>, and a <code>message</code> with a
-            <code>type</code> and a <code>content</code> payload. A few real-shaped
-            examples:
+            <code>type</code> and a <code>content</code> payload. Examples below are
+            adapted from Mindsight's own reference payloads.
           </p>
+
+          <div class="callout" role="note">
+            <span class="callout__icon" aria-hidden="true">ⓘ</span>
+            <div>
+              <strong><code>external_person_id</code> / <code>external_opening_id</code> are your correlation keys</strong>
+              <p>
+                When you create a person or an opening through the ATS API, you pass
+                your own id along with it. MindMatch echoes that id back on every
+                event below — use it to match events to your own records, instead of
+                matching by email.
+              </p>
+            </div>
+          </div>
+
+          <h3>An opening was created or updated</h3>
+          <p>
+            An "opening" is your own job requisition — created via the ATS API,
+            tagged with one of the <code>function_id</code>s from
+            <a href="#functions-endpoint">step 3</a>.
+          </p>
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>OPENING_UPDATED</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>{
+  "id": 5,
+  "created_at": "2024-01-26T14:00:19.613893Z",
+  "message": {
+    "type": "OPENING_UPDATED",
+    "content": {
+      "opening_id": 4,
+      "external_opening_id": "3635735",
+      "opening_name": "3635735-Gerente de Produtos",
+      "function_id": 18
+    }
+  }
+}</code></pre>
+          </div>
 
           <h3>A person was created or updated</h3>
           <div class="code-block">
@@ -1451,69 +1493,127 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
               <button class="copy-button" type="button">Copy</button>
             </div>
             <pre><code>{
-  "id": 9183726,
-  "created_at": "2026-09-18T14:02:11Z",
+  "id": 6,
+  "created_at": "2024-01-26T14:00:19.749444Z",
   "message": {
     "type": "PERSON_UPDATED",
     "content": {
-      "person_id": 445821,
-      "person_name": "Ana Souza",
-      "person_email": "ana.souza@example.com",
-      "person_cpf": "123.456.789-00",
-      "manager_feedback_page_url": "https://app.mindsight.com.br/devolutiva/445821/devolutiva_gestor/?code=3f1b2c4d-..."
+      "person_id": 15,
+      "person_name": "Jane Doe",
+      "external_person_id": "4",
+      "person_email": "jane@mail.com"
     }
   }
 }</code></pre>
           </div>
 
-          <h3>A profile score was updated</h3>
+          <h3>A person was linked to an opening</h3>
+          <p>
+            A "subscription" is a candidate applying to (or being evaluated for) one
+            opening. This is the event that ties <code>external_person_id</code> and
+            <code>external_opening_id</code> together.
+          </p>
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>SUBSCRIPTION_UPDATED</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>{
+  "id": 7,
+  "created_at": "2024-01-26T14:00:19.798749Z",
+  "message": {
+    "type": "SUBSCRIPTION_UPDATED",
+    "content": {
+      "person_id": 15,
+      "person_name": "Jane Doe",
+      "external_person_id": "4",
+      "person_email": "jane@mail.com",
+      "opening_id": 4,
+      "external_opening_id": "3635735",
+      "opening_name": "3635735-Gerente de Produtos"
+    }
+  }
+}</code></pre>
+          </div>
+
+          <h3>A score was produced</h3>
+          <p>
+            <code>score_key</code> says what kind of score this is:
+            <code>profile_map</code> (16 profile dimensions, as
+            <code>secondary_score</code>), <code>nexa</code>, <code>raw_potential</code>,
+            <code>logic</code>, <code>sjt</code>, <code>motivational</code>,
+            <code>ocp</code> (cultural fit), <code>operational</code>, and
+            <code>match</code> (one event per function/opening the candidate was
+            evaluated against — <code>function_id</code> tells you which). You may
+            also see other keys (e.g. <code>attributes</code>, <code>interests</code>)
+            that most integrations simply ignore.
+          </p>
           <div class="code-block">
             <div class="code-block__header">
               <span>SCORE_UPDATED · profile_map</span>
               <button class="copy-button" type="button">Copy</button>
             </div>
             <pre><code>{
-  "id": 9183731,
-  "created_at": "2026-09-18T14:05:40Z",
+  "id": 15,
+  "created_at": "2024-01-26T14:23:48.141767Z",
   "message": {
     "type": "SCORE_UPDATED",
     "content": {
-      "person_id": 445821,
+      "person_id": 15,
+      "external_person_id": "4",
+      "function_id": null,
+      "external_opening_id": "3635735",
+      "candidate_uuid": "7b76d72e-30b0-4682-bd40-5e0fd9489983",
       "score_key": "profile_map",
+      "classification": null,
+      "type_of_accessibility": null,
+      "primary_score": null,
       "secondary_score": [
-        {"name": "Capacidade analítica", "value": 72.4},
-        {"name": "Comunicação", "value": 58.1}
+        {"name": "Capacidade analítica", "value": 46.5},
+        {"name": "Pensamento conceitual", "value": 51.05},
+        {"name": "Comunicação", "value": 55.59}
       ]
     }
   }
 }</code></pre>
           </div>
 
-          <h3>A match score was produced</h3>
+          <p>
+            A simple score (e.g. <code>logic</code>) uses the same envelope but carries
+            its value in <code>primary_score</code> instead, and can carry a
+            <code>classification</code> label (e.g. <code>"Baixo"</code>):
+          </p>
           <div class="code-block">
             <div class="code-block__header">
-              <span>SCORE_UPDATED · match</span>
+              <span>SCORE_UPDATED · logic</span>
               <button class="copy-button" type="button">Copy</button>
             </div>
             <pre><code>{
-  "id": 9183745,
-  "created_at": "2026-09-18T14:07:02Z",
+  "id": 10,
+  "created_at": "2024-01-26T14:13:00.181664Z",
   "message": {
     "type": "SCORE_UPDATED",
     "content": {
-      "person_id": 445821,
-      "score_key": "match",
-      "function_id": 12,
-      "primary_score": 81.3
+      "person_id": 15,
+      "external_person_id": "4",
+      "function_id": null,
+      "external_opening_id": "3635735",
+      "candidate_uuid": "e87276d6-bc64-4c76-9fab-06d27e2db6df",
+      "score_key": "logic",
+      "classification": "Baixo",
+      "secondary_score": null,
+      "primary_score": 10.8
     }
   }
 }</code></pre>
           </div>
 
           <p>
-            A person can have several match events — one per function they were
-            evaluated against. A <code>SCORE_DELETED</code> event uses the same shape
-            without a score value: treat it as "clear this score," not as an error.
+            Most event types also have a <code>_DELETED</code> counterpart
+            (<code>PERSON_DELETED</code>, <code>SUBSCRIPTION_DELETED</code>,
+            <code>SCORE_DELETED</code>, <code>FUNCTION_DELETED</code>,
+            <code>OPENING_DELETED</code>) — same envelope, telling you to clear that
+            record on your side rather than treating it as an error.
           </p>
 
           <div class="callout" role="note">
@@ -1521,9 +1621,8 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
             <div>
               <strong>This is not the full field reference</strong>
               <p>
-                These examples cover the event types most integrations care about.
-                For the complete, authoritative list of event types and fields, see
-                the
+                These examples cover what most integrations need. For the complete,
+                authoritative list of event types and fields, see the
                 <a
                   href="https://documenter.getpostman.com/view/32425521/2s9YysDhNG"
                   target="_blank"
