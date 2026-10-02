@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="How to connect to the MindMatch API: key pair, authentication, endpoints and continuous recurrence, with Python examples."
+      content="Como se conectar à API do MindMatch: par de chaves, autenticação, endpoints e recorrência contínua, com exemplos em Python."
     />
-    <title>MindMatch API — Client Integration Guide | Mindsight</title>
+    <title>API MindMatch — Guia de Integração para Clientes | Mindsight</title>
 
     <style>
       :root {
@@ -1095,24 +1095,24 @@
   <body>
     <div class="announcement">
       <div class="announcement__inner">
-        <p><strong>MINDMATCH API:</strong> integration guide for new ATS clients.</p>
-        <a href="#overview">Jump to the guide&nbsp; →</a>
+        <p><strong>API MINDMATCH:</strong> guia de integração para clientes de ATS novos.</p>
+        <a href="#overview">Ir para o guia&nbsp; →</a>
       </div>
     </div>
 
     <header class="topbar">
       <div class="topbar__inner">
-        <a class="brand" href="index.html" aria-label="Back to the documentation home">
+        <a class="brand" href="index.html" aria-label="Voltar para a página inicial da documentação">
           <img
             src="https://mindsight.com.br/wp-content/uploads/2026/08/logo_bysankhya.svg"
             alt="Mindsight by Sankhya"
           />
         </a>
         <div class="topbar__right">
-          <span class="status">Technical documentation</span>
-          <nav class="lang-switch" aria-label="Language">
-            <a href="mindmatch.html" aria-current="true">EN</a>
-            <a href="mindmatch.pt-br.html">PT-BR</a>
+          <span class="status">Documentação técnica</span>
+          <nav class="lang-switch" aria-label="Idioma">
+            <a href="mindmatch.html">EN</a>
+            <a href="mindmatch.pt-br.html" aria-current="true">PT-BR</a>
           </nav>
         </div>
       </div>
@@ -1120,130 +1120,131 @@
 
     <header class="hero" id="inicio">
       <div class="hero__inner">
-        <p class="eyebrow">MindMatch API</p>
-        <h1>Client Integration Guide</h1>
+        <p class="eyebrow">API MindMatch</p>
+        <h1>Guia de Integração para Clientes</h1>
         <p>
-          A step-by-step guide for an ATS vendor connecting to MindMatch for the first
-          time: generating your key pair, authenticating, reading the data, and keeping
-          it in sync continuously. MindMatch uses its own JWT-bearer authentication —
-          separate from the OAuth <code>client_credentials</code> flow used by
-          Mindsight's other APIs.
+          Um guia passo a passo para quem vai integrar o próprio ATS com o MindMatch
+          pela primeira vez: gerar seu par de chaves, autenticar, ler os dados e manter
+          a sincronização contínua. O MindMatch usa sua própria autenticação
+          JWT-bearer — separada do fluxo OAuth <code>client_credentials</code> usado
+          pelas outras APIs da Mindsight.
         </p>
-        <div class="chips" aria-label="References">
-          <a class="chip" href="index.html">All Mindsight APIs</a>
+        <div class="chips" aria-label="Referências">
+          <a class="chip" href="index.html">Todas as APIs da Mindsight</a>
           <a
             class="chip chip--alternate"
             href="https://documenter.getpostman.com/view/32425521/2s9YysDhNG"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Official Postman reference
+            Referência oficial no Postman
           </a>
         </div>
       </div>
     </header>
 
     <div class="layout">
-      <aside class="sidebar" aria-label="Page navigation">
-        <p class="sidebar__label">On this page</p>
+      <aside class="sidebar" aria-label="Navegação da página">
+        <p class="sidebar__label">Nesta página</p>
         <nav>
-          <a href="#overview" aria-current="true">Overview</a>
-          <a href="#key-pair">Key pair</a>
-          <a href="#authenticate">Authenticate</a>
-          <a href="#functions-endpoint">Functions</a>
+          <a href="#overview" aria-current="true">Visão geral</a>
+          <a href="#key-pair">Par de chaves</a>
+          <a href="#authenticate">Autenticar</a>
+          <a href="#functions-endpoint">Funções</a>
           <a href="#event-journal-endpoint">Event journal</a>
-          <a href="#data-shapes">Data shapes</a>
-          <a href="#recurrence">Recurrence</a>
-          <a href="#security">Security</a>
+          <a href="#data-shapes">Formato dos dados</a>
+          <a href="#recurrence">Recorrência</a>
+          <a href="#security">Segurança</a>
         </nav>
       </aside>
 
       <main>
         <section id="overview">
-          <h2>Overview</h2>
+          <h2>Visão geral</h2>
           <p class="lead">
-            This page is for an ATS integrating with MindMatch directly — reading
-            candidate scores and match results as they're produced, so your own
-            platform can act on them.
+            Esta página é para quem vai integrar o próprio ATS direto com o
+            MindMatch — lendo as notas dos candidatos e os resultados de match
+            conforme são produzidos, para a sua plataforma agir sobre eles.
           </p>
 
           <div class="callout" role="note">
             <span class="callout__icon" aria-hidden="true">ⓘ</span>
             <div>
-              <strong>There is no bulk/historical import step</strong>
+              <strong>Não existe etapa de carga em lote/histórica</strong>
               <p>
-                MindMatch's event journal keeps roughly <strong>6 months</strong> of
-                history. A new integration doesn't need a separate one-time export —
-                you start directly on the continuous recurring sync described in
-                <a href="#recurrence">Recurrence</a>, with your first
-                <code>start_datetime</code> set to your go-live date (or up to ~6
-                months back if you need that history).
+                O event journal do MindMatch guarda aproximadamente
+                <strong>6 meses</strong> de histórico. Uma integração nova não
+                precisa de uma exportação única e separada — você já começa direto
+                na sincronização recorrente contínua descrita em
+                <a href="#recurrence">Recorrência</a>, com o primeiro
+                <code>start_datetime</code> na sua data de entrada em produção (ou
+                até ~6 meses atrás, se precisar desse histórico).
               </p>
             </div>
           </div>
 
-          <p>At a glance, the path from zero to a running integration:</p>
-          <div class="steps" aria-label="Integration steps">
+          <p>Resumindo, o caminho do zero até uma integração rodando:</p>
+          <div class="steps" aria-label="Etapas da integração">
             <article class="step">
               <span class="step__number">01</span>
-              <strong>Generate a key pair</strong>
-              <p>Create an RSA key pair and send Mindsight the public half.</p>
+              <strong>Gerar um par de chaves</strong>
+              <p>Criar um par de chaves RSA e enviar a metade pública para a Mindsight.</p>
             </article>
             <article class="step">
               <span class="step__number">02</span>
-              <strong>Authenticate</strong>
-              <p>Sign a short-lived JWT and exchange it for an access token.</p>
+              <strong>Autenticar</strong>
+              <p>Assinar um JWT de curta duração e trocá-lo por um access token.</p>
             </article>
             <article class="step">
               <span class="step__number">03</span>
-              <strong>Sync continuously</strong>
-              <p>Poll the event journal on a watermark, not a one-off export.</p>
+              <strong>Sincronizar continuamente</strong>
+              <p>Fazer polling do event journal com base numa marca d'água, não numa exportação única.</p>
             </article>
           </div>
         </section>
 
         <section id="key-pair">
-          <h2>1. Generate your key pair</h2>
+          <h2>1. Gere seu par de chaves</h2>
           <p>
-            MindMatch authenticates your application with an RSA key pair instead of a
-            shared secret: you sign requests with your <strong>private</strong> key,
-            and Mindsight verifies them with the <strong>public</strong> key you send
-            them up front.
+            O MindMatch autentica sua aplicação com um par de chaves RSA em vez de
+            um segredo compartilhado: você assina as requisições com sua chave
+            <strong>privada</strong>, e a Mindsight as verifica com a chave
+            <strong>pública</strong> que você envia antecipadamente.
           </p>
 
-          <div class="steps" aria-label="Key pair setup steps">
+          <div class="steps" aria-label="Etapas de configuração do par de chaves">
             <article class="step">
               <span class="step__number">01</span>
-              <strong>Generate the pair</strong>
-              <p>2048-bit RSA, locally — the private key never leaves your side.</p>
+              <strong>Gerar o par</strong>
+              <p>RSA de 2048 bits, localmente — a chave privada nunca sai do seu lado.</p>
             </article>
             <article class="step">
               <span class="step__number">02</span>
-              <strong>Send the public key</strong>
-              <p>Share <code>public.pem</code> with Mindsight support to get a <code>client_id</code>.</p>
+              <strong>Enviar a chave pública</strong>
+              <p>Compartilhe o <code>public.pem</code> com o suporte da Mindsight para receber um <code>client_id</code>.</p>
             </article>
             <article class="step">
               <span class="step__number">03</span>
-              <strong>Store the private key</strong>
-              <p>In a secrets manager or environment variable — never in git.</p>
+              <strong>Guardar a chave privada</strong>
+              <p>Em um gerenciador de segredos ou variável de ambiente — nunca no git.</p>
             </article>
           </div>
 
-          <h3>Command line</h3>
+          <h3>Linha de comando</h3>
           <div class="code-block">
             <div class="code-block__header">
               <span>Shell</span>
-              <button class="copy-button" type="button">Copy</button>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>openssl genrsa -out private.pem 2048
 openssl rsa -in private.pem -pubout -out public.pem</code></pre>
           </div>
 
-          <h3>Python equivalent</h3>
+          <h3>Equivalente em Python</h3>
           <div class="code-block">
             <div class="code-block__header">
               <span>Python</span>
-              <button class="copy-button" type="button">Copy</button>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -1269,30 +1270,31 @@ with open("public.pem", "wb") as f:
           <div class="callout" role="note">
             <span class="callout__icon" aria-hidden="true">⚠</span>
             <div>
-              <strong>Send the public key, keep the private key</strong>
+              <strong>Envie a chave pública, guarde a privada</strong>
               <p>
-                Only <code>public.pem</code> goes to Mindsight. Mindsight sends back a
-                <code>CLIENT_ID</code> that identifies your application — you'll use it
-                together with your private key in every authentication request.
+                Só o <code>public.pem</code> vai para a Mindsight. A Mindsight
+                devolve um <code>CLIENT_ID</code> que identifica sua aplicação —
+                você vai usá-lo junto com sua chave privada em toda requisição de
+                autenticação.
               </p>
             </div>
           </div>
         </section>
 
         <section id="authenticate">
-          <h2>2. Authenticate</h2>
+          <h2>2. Autentique</h2>
           <p>
-            MindMatch uses the OAuth 2.0 <strong>JWT-bearer</strong> grant (RFC 7523):
-            you sign a short-lived JWT with your private key to prove who you are, and
-            exchange it for an access token.
+            O MindMatch usa o grant OAuth 2.0 <strong>JWT-bearer</strong> (RFC 7523):
+            você assina um JWT de curta duração com sua chave privada para provar
+            quem você é, e o troca por um access token.
           </p>
 
-          <h3>1. Build the signed assertion (RS256)</h3>
-          <p>The JWT claims identify your application and expire quickly:</p>
+          <h3>1. Monte a assertion assinada (RS256)</h3>
+          <p>As claims do JWT identificam sua aplicação e expiram rápido:</p>
           <div class="code-block">
             <div class="code-block__header">
-              <span>JWT claims</span>
-              <button class="copy-button" type="button">Copy</button>
+              <span>Claims do JWT</span>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>{
   "iss": "YOUR_CLIENT_ID",
@@ -1304,8 +1306,8 @@ with open("public.pem", "wb") as f:
 }</code></pre>
           </div>
 
-          <h3>2. Exchange it for an access token</h3>
-          <div class="endpoint" aria-label="Token endpoint">
+          <h3>2. Troque por um access token</h3>
+          <div class="endpoint" aria-label="Endpoint de token">
             <span class="method">POST</span>
             <code>https://app.mindsight.com.br/api/v2/oauth/token/</code>
           </div>
@@ -1313,18 +1315,18 @@ with open("public.pem", "wb") as f:
           <div class="code-block">
             <div class="code-block__header">
               <span>application/x-www-form-urlencoded</span>
-              <button class="copy-button" type="button">Copy</button>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
 client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
-client_assertion=&lt;the signed JWT from step 1&gt;</code></pre>
+client_assertion=&lt;o JWT assinado do passo 1&gt;</code></pre>
           </div>
 
-          <h3>Python example</h3>
+          <h3>Exemplo em Python</h3>
           <div class="code-block">
             <div class="code-block__header">
               <span>Python</span>
-              <button class="copy-button" type="button">Copy</button>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>import time
 from uuid import uuid4
@@ -1335,7 +1337,7 @@ from cryptography.hazmat.primitives import serialization
 
 API_BASE = "https://app.mindsight.com.br/api/v2/"
 CLIENT_ID = "YOUR_CLIENT_ID"
-PRIVATE_KEY_PEM = open("private.pem").read()  # load from a secret manager in production
+PRIVATE_KEY_PEM = open("private.pem").read()  # carregue de um gerenciador de segredos em produção
 
 
 def build_client_assertion() -> str:
@@ -1378,37 +1380,38 @@ access_token = get_access_token()</code></pre>
           <div class="callout" role="note">
             <span class="callout__icon" aria-hidden="true">ⓘ</span>
             <div>
-              <strong>The token is valid for 1 hour</strong>
+              <strong>O token vale 1 hora</strong>
               <p>
-                Don't try to refresh a token in place — just build a new client
-                assertion and request a new access token. The simplest pattern is one
-                token per sync run (see <a href="#recurrence">Recurrence</a>).
+                Não tente renovar um token no lugar — apenas monte uma nova client
+                assertion e peça um novo access token. O padrão mais simples é um
+                token por execução de sincronização (veja
+                <a href="#recurrence">Recorrência</a>).
               </p>
             </div>
           </div>
         </section>
 
         <section id="functions-endpoint">
-          <h2>3. List functions (archetypes)</h2>
+          <h2>3. Liste as funções (arquétipos)</h2>
           <p>
-            Every candidate is matched against one or more "functions" (archetypes) —
-            a fixed taxonomy on Mindsight's side. Don't confuse this with an
-            <strong>opening</strong> (your own job requisition, created via the ATS
-            API, which just points at one of these functions — see
-            <a href="#data-shapes">Understand the data</a>). Fetch the function list
-            once per run so you can resolve <code>function_id</code> to a name.
+            Todo candidato é avaliado contra uma ou mais "funções" (arquétipos) —
+            uma taxonomia fixa do lado da Mindsight. Não confunda com uma
+            <strong>opening</strong> (sua própria vaga, criada via API do ATS, que
+            só aponta para uma dessas funções — veja
+            <a href="#data-shapes">Entenda os dados</a>). Busque a lista de funções
+            uma vez por execução para resolver <code>function_id</code> em um nome.
           </p>
 
-          <div class="endpoint" aria-label="Functions endpoint">
+          <div class="endpoint" aria-label="Endpoint de funções">
             <span class="method">GET</span>
             <code>https://app.mindsight.com.br/api/v2/ats-integration/functions</code>
           </div>
 
-          <p>The response is paginated (<code>results</code> + <code>next</code>):</p>
+          <p>A resposta é paginada (<code>results</code> + <code>next</code>):</p>
           <div class="code-block">
             <div class="code-block__header">
               <span>Python</span>
-              <button class="copy-button" type="button">Copy</button>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>def list_functions(session: requests.Session) -> dict[int, str]:
     functions: dict[int, str] = {}
@@ -1428,26 +1431,26 @@ functions = list_functions(session)</code></pre>
         </section>
 
         <section id="event-journal-endpoint">
-          <h2>4. Read the event journal</h2>
+          <h2>4. Leia o event journal</h2>
           <p>
-            This is the endpoint you'll poll continuously: it returns every event
-            created since a given timestamp — new candidates, updated scores, deleted
-            scores, match results.
+            Esse é o endpoint que você vai consultar continuamente: ele devolve
+            todo evento criado desde um timestamp informado — candidatos novos,
+            notas atualizadas, notas apagadas, resultados de match.
           </p>
 
-          <div class="endpoint" aria-label="Event journal endpoint">
+          <div class="endpoint" aria-label="Endpoint do event journal">
             <span class="method">GET</span>
             <code>…/ats-integration/event-journal?start_datetime=2026-09-18T00:00:00Z</code>
           </div>
 
           <p>
-            The response is a plain list (no pagination) of every event since
-            <code>start_datetime</code>, in UTC, ISO 8601:
+            A resposta é uma lista simples (sem paginação) de todo evento desde
+            <code>start_datetime</code>, em UTC, ISO 8601:
           </p>
           <div class="code-block">
             <div class="code-block__header">
               <span>Python</span>
-              <button class="copy-button" type="button">Copy</button>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>from datetime import datetime, timezone
 
@@ -1457,7 +1460,7 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
     response = session.get(
         f"{API_BASE}ats-integration/event-journal",
         params={"start_datetime": start_utc},
-        timeout=600,  # a wide window (e.g. 6 months) can take a couple of minutes
+        timeout=600,  # uma janela larga (ex.: 6 meses) pode levar alguns minutos
     )
     response.raise_for_status()
     return response.json()</code></pre>
@@ -1466,50 +1469,49 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
           <div class="callout" role="note">
             <span class="callout__icon" aria-hidden="true">ⓘ</span>
             <div>
-              <strong>Retention is ~6 months</strong>
+              <strong>A retenção é de ~6 meses</strong>
               <p>
-                Don't rely on the journal for anything older than that. If you ever
-                need history beyond 6 months, ask Mindsight support for an export —
-                it's not something this endpoint can give you.
+                Não conte com o journal pra nada mais antigo que isso. Se precisar
+                de histórico além de 6 meses, peça uma exportação ao suporte da
+                Mindsight — não é algo que esse endpoint entrega.
               </p>
             </div>
           </div>
         </section>
 
         <section id="data-shapes">
-          <h2>5. Understand the data</h2>
+          <h2>5. Entenda os dados</h2>
           <p>
-            Every event has the same envelope: an <code>id</code>, a
-            <code>created_at</code>, and a <code>message</code> with a
-            <code>type</code> and a <code>content</code> payload. Examples below are
-            adapted from Mindsight's own reference payloads.
+            Todo evento tem o mesmo envelope: um <code>id</code>, um
+            <code>created_at</code>, e uma <code>message</code> com um
+            <code>type</code> e um payload <code>content</code>. Os exemplos abaixo
+            foram adaptados dos próprios payloads de referência da Mindsight.
           </p>
 
           <div class="callout" role="note">
             <span class="callout__icon" aria-hidden="true">ⓘ</span>
             <div>
-              <strong><code>external_person_id</code> / <code>external_opening_id</code> are your correlation keys — if you set them</strong>
+              <strong><code>external_person_id</code> / <code>external_opening_id</code> são suas chaves de correlação — se você as definir</strong>
               <p>
-                When you create a person or an opening through the ATS API, you can
-                pass your own id along with it; MindMatch echoes it back on every
-                event below. If your integration doesn't set them, they simply come
-                back <code>null</code> — fall back to <code>person_id</code> (stable,
-                always present) or <code>candidate_uuid</code>/
-                <code>manager_feedback_page_url</code> instead.
+                Quando você cria uma pessoa ou uma opening pela API do ATS, pode
+                passar seu próprio id junto; o MindMatch devolve esse id em todo
+                evento abaixo. Se sua integração não os define, eles simplesmente
+                voltam <code>null</code> — use <code>person_id</code> (estável,
+                sempre presente) ou <code>candidate_uuid</code>/
+                <code>manager_feedback_page_url</code> como alternativa.
               </p>
             </div>
           </div>
 
-          <h3>An opening was created or updated</h3>
+          <h3>Uma opening foi criada ou atualizada</h3>
           <p>
-            An "opening" is your own job requisition — created via the ATS API,
-            tagged with one of the <code>function_id</code>s from
-            <a href="#functions-endpoint">step 3</a>.
+            Uma "opening" é sua própria vaga — criada via API do ATS, marcada com
+            um dos <code>function_id</code> do <a href="#functions-endpoint">passo 3</a>.
           </p>
           <div class="code-block">
             <div class="code-block__header">
               <span>OPENING_UPDATED</span>
-              <button class="copy-button" type="button">Copy</button>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>{
   "id": 5,
@@ -1526,18 +1528,18 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
 }</code></pre>
           </div>
 
-          <h3>A person was created or updated</h3>
+          <h3>Uma pessoa foi criada ou atualizada</h3>
           <p>
-            <code>manager_feedback_page_url</code> is a stable link to this
-            candidate's report; the <code>code</code> query param is their
-            <code>candidate_uuid</code>, which also shows up on their score events
-            below — handy as a second correlation anchor alongside
-            <code>person_id</code>.
+            <code>manager_feedback_page_url</code> é um link estável para o
+            relatório desse candidato; o parâmetro <code>code</code> na URL é o
+            <code>candidate_uuid</code> dele, que também aparece nos eventos de
+            nota abaixo — útil como uma segunda referência de correlação, junto
+            com <code>person_id</code>.
           </p>
           <div class="code-block">
             <div class="code-block__header">
               <span>PERSON_UPDATED</span>
-              <button class="copy-button" type="button">Copy</button>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>{
   "id": 9183726,
@@ -1556,16 +1558,16 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
 }</code></pre>
           </div>
 
-          <h3>A person was linked to an opening</h3>
+          <h3>Uma pessoa foi vinculada a uma opening</h3>
           <p>
-            A "subscription" is a candidate applying to (or being evaluated for) one
-            opening — the same fields as <code>PERSON_UPDATED</code>, plus the
-            opening side.
+            Uma "subscription" é um candidato se aplicando (ou sendo avaliado)
+            para uma opening — os mesmos campos de <code>PERSON_UPDATED</code>,
+            mais o lado da opening.
           </p>
           <div class="code-block">
             <div class="code-block__header">
               <span>SUBSCRIPTION_UPDATED</span>
-              <button class="copy-button" type="button">Copy</button>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>{
   "id": 9183727,
@@ -1587,22 +1589,23 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
 }</code></pre>
           </div>
 
-          <h3>A score was produced</h3>
+          <h3>Uma nota foi produzida</h3>
           <p>
-            <code>score_key</code> says what kind of score this is:
-            <code>profile_map</code> (16 profile dimensions, as
-            <code>secondary_score</code>), <code>nexa</code>, <code>raw_potential</code>,
-            <code>logic</code>, <code>sjt</code>, <code>motivational</code>,
-            <code>ocp</code> (cultural fit), <code>operational</code>, and
-            <code>match</code> (one event per function/opening the candidate was
-            evaluated against — <code>function_id</code> tells you which). You may
-            also see other keys (e.g. <code>attributes</code>, <code>interests</code>)
-            that most integrations simply ignore.
+            <code>score_key</code> diz que tipo de nota é essa:
+            <code>profile_map</code> (16 dimensões de perfil, em
+            <code>secondary_score</code>), <code>nexa</code>,
+            <code>raw_potential</code>, <code>logic</code>, <code>sjt</code>,
+            <code>motivational</code>, <code>ocp</code> (fit cultural),
+            <code>operational</code>, e <code>match</code> (um evento por
+            função/opening em que o candidato foi avaliado —
+            <code>function_id</code> diz qual). Você também pode ver outras chaves
+            (ex.: <code>attributes</code>, <code>interests</code>) que a maioria
+            das integrações simplesmente ignora.
           </p>
           <div class="code-block">
             <div class="code-block__header">
               <span>SCORE_UPDATED · profile_map</span>
-              <button class="copy-button" type="button">Copy</button>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>{
   "id": 9183731,
@@ -1631,14 +1634,14 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
           </div>
 
           <p>
-            <code>match</code> is the one score type that's always tied to an
-            opening: <code>function_id</code> says which archetype, and a person has
-            one match event per opening they were evaluated against.
+            <code>match</code> é o único tipo de nota sempre ligado a uma opening:
+            <code>function_id</code> diz qual arquétipo, e uma pessoa tem um
+            evento de match por opening em que foi avaliada.
           </p>
           <div class="code-block">
             <div class="code-block__header">
               <span>SCORE_UPDATED · match</span>
-              <button class="copy-button" type="button">Copy</button>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>{
   "id": 9183745,
@@ -1663,76 +1666,79 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
           </div>
 
           <p>
-            A <code>SCORE_DELETED</code> event uses this exact same field set with
-            <code>primary_score</code>/<code>secondary_score</code> back to
-            <code>null</code> — treat it as "clear this score," not an error. Most
-            other event types also have a <code>_DELETED</code> counterpart
-            (<code>PERSON_DELETED</code>, <code>SUBSCRIPTION_DELETED</code>,
-            <code>SCORE_DELETED</code>, <code>FUNCTION_DELETED</code>,
-            <code>OPENING_DELETED</code>) — same envelope, telling you to clear that
-            record on your side rather than treating it as an error.
+            Um evento <code>SCORE_DELETED</code> usa exatamente esse mesmo conjunto
+            de campos com <code>primary_score</code>/<code>secondary_score</code>
+            voltando a <code>null</code> — trate como "limpar essa nota", não como
+            um erro. A maioria dos outros tipos de evento também tem uma
+            contraparte <code>_DELETED</code> (<code>PERSON_DELETED</code>,
+            <code>SUBSCRIPTION_DELETED</code>, <code>SCORE_DELETED</code>,
+            <code>FUNCTION_DELETED</code>, <code>OPENING_DELETED</code>) — mesmo
+            envelope, avisando pra você limpar aquele registro do seu lado em vez
+            de tratar como erro.
           </p>
 
           <div class="callout" role="note">
             <span class="callout__icon" aria-hidden="true">ⓘ</span>
             <div>
-              <strong>This is not the full field reference</strong>
+              <strong>Essa não é a referência completa de campos</strong>
               <p>
-                These examples cover what most integrations need. For the complete,
-                authoritative list of event types and fields, see the
+                Esses exemplos cobrem o que a maioria das integrações precisa.
+                Para a lista completa e oficial de tipos de evento e campos, veja a
                 <a
                   href="https://documenter.getpostman.com/view/32425521/2s9YysDhNG"
                   target="_blank"
                   rel="noopener noreferrer"
-                >official Postman documentation</a>.
+                >documentação oficial no Postman</a>.
               </p>
             </div>
           </div>
         </section>
 
         <section id="recurrence">
-          <h2>6. Build continuous recurrence</h2>
+          <h2>6. Construa a recorrência contínua</h2>
           <p>
-            There's no "initial load" endpoint — your integration is one recurring job
-            from day one. The pattern is a <strong>watermark</strong>: remember where
-            your last successful run left off, and start the next run a little before
-            that point.
+            Não existe um endpoint de "carga inicial" — sua integração já é um job
+            recorrente desde o primeiro dia. O padrão é uma
+            <strong>marca d'água</strong>: lembrar onde sua última execução
+            bem-sucedida parou, e começar a próxima execução um pouco antes desse
+            ponto.
           </p>
 
-          <div class="steps" aria-label="Recurrence pattern">
+          <div class="steps" aria-label="Padrão de recorrência">
             <article class="step">
               <span class="step__number">01</span>
-              <strong>Watermark</strong>
-              <p>Store the end time of your last <em>successful</em> run.</p>
+              <strong>Marca d'água</strong>
+              <p>Guarde o horário de fim da sua última execução <em>bem-sucedida</em>.</p>
             </article>
             <article class="step">
               <span class="step__number">02</span>
-              <strong>Small overlap</strong>
-              <p>Start the next run a few minutes before the watermark, not hours.</p>
+              <strong>Sobreposição pequena</strong>
+              <p>Comece a próxima execução alguns minutos antes da marca d'água, não horas.</p>
             </article>
             <article class="step">
               <span class="step__number">03</span>
-              <strong>Idempotent writes</strong>
-              <p>Re-seeing an event is safe — upsert by <code>person_id</code>/<code>event id</code>.</p>
+              <strong>Escritas idempotentes</strong>
+              <p>Ver um evento de novo é seguro — faça upsert por <code>person_id</code>/id do evento.</p>
             </article>
           </div>
 
           <p>
-            If a run fails, don't move the watermark — the next run will simply retry
-            the same window. Reprocessing overlap is intentional and safe as long as
-            your own writes are idempotent.
+            Se uma execução falhar, não avance a marca d'água — a próxima execução
+            simplesmente tenta de novo a mesma janela. Reprocessar a sobreposição é
+            intencional e seguro, desde que suas próprias escritas sejam
+            idempotentes.
           </p>
 
           <div class="code-block">
             <div class="code-block__header">
               <span>Python</span>
-              <button class="copy-button" type="button">Copy</button>
+              <button class="copy-button" type="button">Copiar</button>
             </div>
             <pre><code>import time
 from datetime import datetime, timedelta, timezone
 
-OVERLAP = timedelta(minutes=5)  # small safety margin anchored on the watermark
-POLL_EVERY = 15 * 60  # seconds
+OVERLAP = timedelta(minutes=5)  # margem de segurança pequena, ancorada na marca d'água
+POLL_EVERY = 15 * 60  # segundos
 
 
 def run_once(watermark: datetime) -> datetime:
@@ -1744,92 +1750,96 @@ def run_once(watermark: datetime) -> datetime:
     functions = list_functions(session)
     events = fetch_events(session, window_start)
 
-    # apply(events, functions) -> write to your own store, keyed by event id
-    # so reprocessing the overlap never double-applies anything.
+    # apply(events, functions) -> grave no seu próprio armazenamento, indexado
+    # pelo id do evento, assim reprocessar a sobreposição nunca aplica nada em duplicidade.
 
-    return started_at  # new watermark — only advance it after a successful run
+    return started_at  # nova marca d'água — só avance depois de uma execução bem-sucedida
 
 
-watermark = datetime(2026, 9, 1, tzinfo=timezone.utc)  # first run: your go-live date
+watermark = datetime(2026, 9, 1, tzinfo=timezone.utc)  # primeira execução: sua data de entrada em produção
 while True:
     try:
         watermark = run_once(watermark)
     except Exception:
-        pass  # keep the old watermark; the next run retries this same window
+        pass  # mantenha a marca d'água antiga; a próxima execução tenta de novo essa mesma janela
     time.sleep(POLL_EVERY)</code></pre>
           </div>
 
           <div class="callout" role="note">
             <span class="callout__icon" aria-hidden="true">ⓘ</span>
             <div>
-              <strong>Pick a polling interval that matches your use case</strong>
+              <strong>Escolha um intervalo de polling que combine com seu caso de uso</strong>
               <p>
-                A few minutes if you act on scores in near real time (e.g. feeding a
-                decision back into your ATS); hourly or daily is plenty for reporting
-                or analytics use cases. Shorter intervals mean a shorter overlap
-                margin — minutes, not hours.
+                Alguns minutos se você age sobre as notas quase em tempo real (ex.:
+                alimentando uma decisão de volta no seu ATS); de hora em hora ou
+                diário é suficiente para relatórios ou análises. Intervalos mais
+                curtos significam uma margem de sobreposição menor — minutos, não
+                horas.
               </p>
             </div>
           </div>
         </section>
 
         <section id="security">
-          <h2>7. Security &amp; operations</h2>
+          <h2>7. Segurança e operação</h2>
           <p>
-            Your private key is the only thing standing between MindMatch and anyone
-            who could impersonate your application.
+            Sua chave privada é a única coisa que separa o MindMatch de qualquer
+            um que possa se passar pela sua aplicação.
           </p>
 
           <div class="callout" role="note">
             <span class="callout__icon" aria-hidden="true">⚠</span>
             <div>
-              <strong>Never expose your private key</strong>
+              <strong>Nunca exponha sua chave privada</strong>
               <p>
-                Keep it in a secrets manager or environment variable — never in a git
-                repository, a notebook, client-side JavaScript, or logs.
+                Guarde-a em um gerenciador de segredos ou variável de ambiente —
+                nunca em um repositório git, um notebook, JavaScript do lado do
+                cliente, ou logs.
               </p>
             </div>
           </div>
 
-          <h3>Token lifecycle</h3>
+          <h3>Ciclo de vida do token</h3>
           <p>
-            Access tokens last 1 hour. Re-authenticate at the start of each sync run
-            rather than trying to cache and refresh a token across runs — it's simpler
-            and avoids edge cases around expiry mid-run.
+            Os access tokens duram 1 hora. Reautentique no início de cada execução
+            de sincronização, em vez de tentar guardar e renovar um token entre
+            execuções — é mais simples e evita casos extremos de expiração no meio
+            de uma execução.
           </p>
 
-          <h3>Rotating your key pair</h3>
+          <h3>Rotacionando seu par de chaves</h3>
           <p>
-            If your private key is ever compromised, generate a new pair (see
-            <a href="#key-pair">Key pair</a>) and send Mindsight support the new public
-            key — they'll switch your <code>client_id</code> over to it.
+            Se sua chave privada for comprometida, gere um par novo (veja
+            <a href="#key-pair">Par de chaves</a>) e envie a chave pública nova ao
+            suporte da Mindsight — eles vão trocar seu <code>client_id</code> para
+            ela.
           </p>
         </section>
 
         <aside class="next-step">
-          <h2>Next steps</h2>
+          <h2>Próximos passos</h2>
           <p>
-            With authentication and the event journal in place, the rest is building
-            out how your platform reacts to new scores and match results.
+            Com a autenticação e o event journal no lugar, o resto é construir
+            como sua plataforma reage a notas novas e resultados de match.
           </p>
-          <ul class="next-step__links" aria-label="Further reading">
+          <ul class="next-step__links" aria-label="Leitura complementar">
             <li>
               <a
                 href="https://documenter.getpostman.com/view/32425521/2s9YysDhNG"
                 target="_blank"
                 rel="noopener noreferrer"
-              >Official Postman reference ↗</a>
+              >Referência oficial no Postman ↗</a>
             </li>
-            <li><a href="index.html">All Mindsight APIs</a></li>
+            <li><a href="index.html">Todas as APIs da Mindsight</a></li>
           </ul>
           <p class="next-step__warning">
-            <strong>Questions about your credentials or the data itself?</strong>
-            Reach out to Mindsight support — they issue your <code>client_id</code> and
-            can confirm event types your account should expect.
+            <strong>Dúvidas sobre suas credenciais ou os dados em si?</strong>
+            Fale com o suporte da Mindsight — eles emitem seu <code>client_id</code>
+            e podem confirmar quais tipos de evento sua conta deve esperar.
           </p>
         </aside>
 
-        <footer>MindMatch API · Client integration guide</footer>
+        <footer>API MindMatch · Guia de integração para clientes</footer>
       </main>
     </div>
 
@@ -1842,13 +1852,13 @@ while True:
 
           try {
             await navigator.clipboard.writeText(code);
-            button.textContent = "Copied!";
+            button.textContent = "Copiado!";
           } catch {
-            button.textContent = "Select the code";
+            button.textContent = "Selecione o código";
           }
 
           window.setTimeout(() => {
-            button.textContent = "Copy";
+            button.textContent = "Copiar";
           }, 1800);
         });
       });
