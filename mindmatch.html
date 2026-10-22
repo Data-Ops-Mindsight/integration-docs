@@ -1089,6 +1089,46 @@
           margin-top: 44px;
         }
       }
+
+      /* Tabelas de referência (catálogo de eventos) */
+      .table-wrap {
+        overflow-x: auto;
+        margin: 18px 0 26px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+      }
+
+      .table-wrap table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.88rem;
+      }
+
+      .table-wrap th,
+      .table-wrap td {
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .table-wrap th {
+        background: var(--surface-soft);
+        color: var(--muted);
+        font-size: 0.74rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .table-wrap tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .table-wrap td:first-child {
+        white-space: nowrap;
+      }
     </style>
   </head>
 
@@ -1498,6 +1538,53 @@ def fetch_events(session: requests.Session, start: datetime) -> list[dict]:
                 <code>manager_feedback_page_url</code> instead.
               </p>
             </div>
+          </div>
+
+          <h3>Event catalog</h3>
+          <p>
+            These are all the event types in the journal. The first five are the ones you will see in practice; the <code>_DELETED</code> types are documented but rarely appear.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Event</th><th>About</th><th>Fires when</th><th>What to do</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>OPENING_UPDATED</code></td><td>Opening</td><td>An opening is created or changed</td><td>Upsert the opening; keep <code>opening_id</code> → <code>function_id</code></td></tr>
+                <tr><td><code>PERSON_UPDATED</code></td><td>Person</td><td>A person is created or their data changes</td><td>Upsert the person by <code>person_id</code></td></tr>
+                <tr><td><code>SUBSCRIPTION_UPDATED</code></td><td>Person + opening</td><td>A person is linked to an opening</td><td>Upsert the person and the person ↔ opening link</td></tr>
+                <tr><td><code>SCORE_UPDATED</code></td><td>Score</td><td>A score is produced or recalculated</td><td>Upsert the score by <code>score_key</code> (see below)</td></tr>
+                <tr><td><code>SCORE_DELETED</code></td><td>Score</td><td>A score is removed</td><td>Clear that score; not an error</td></tr>
+                <tr><td><code>PERSON_DELETED</code></td><td>Person</td><td>A person is deleted</td><td>Remove the person on your side</td></tr>
+                <tr><td><code>SUBSCRIPTION_DELETED</code></td><td>Person + opening</td><td>A link is removed</td><td>Remove the link</td></tr>
+                <tr><td><code>OPENING_DELETED</code></td><td>Opening</td><td>An opening is deleted</td><td>Remove the opening</td></tr>
+                <tr><td><code>FUNCTION_DELETED</code></td><td>Function</td><td>A function (archetype) is removed</td><td>Remove the function</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Score types (<code>score_key</code>)</h3>
+          <p>
+            <code>SCORE_UPDATED</code> and <code>SCORE_DELETED</code> share one payload shape; <code>score_key</code> tells you which score it is and where the value lives.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>score_key</th><th>Score</th><th>Value is in</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>profile_map</code></td><td>Profile map, 16 dimensions</td><td><code>secondary_score</code> — list of <code>{name, value}</code></td></tr>
+                <tr><td><code>nexa</code></td><td>NEXA overall, classification and 6 dimensions</td><td><code>primary_score</code>, <code>classification</code>, <code>secondary_score</code> by key</td></tr>
+                <tr><td><code>raw_potential</code></td><td>Raw potential</td><td><code>primary_score</code></td></tr>
+                <tr><td><code>logic</code></td><td>Reasoning</td><td><code>primary_score</code></td></tr>
+                <tr><td><code>sjt</code></td><td>Social</td><td><code>primary_score</code></td></tr>
+                <tr><td><code>motivational</code></td><td>Motivational</td><td><code>primary_score</code></td></tr>
+                <tr><td><code>ocp</code></td><td>Cultural fit</td><td><code>primary_score</code></td></tr>
+                <tr><td><code>operational</code></td><td>Simplified reasoning</td><td><code>secondary_score.score.value</code></td></tr>
+                <tr><td><code>match</code></td><td>Match against a function</td><td><code>primary_score</code>, with <code>function_id</code></td></tr>
+                <tr><td><code>attributes</code>, <code>interests</code></td><td>Other scores</td><td>Most integrations ignore them</td></tr>
+              </tbody>
+            </table>
           </div>
 
           <h3>An opening was created or updated</h3>
