@@ -1,0 +1,2136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="How to integrate with the Mindsight Recruitment ATS external API: JWT authentication, users, job postings, expandable fields and hired applicants, with tested Python examples."
+    />
+    <title>ATS External API — Integration Guide | Mindsight</title>
+
+    <style>
+      :root {
+        color-scheme: light;
+        --background: #f6f5f8;
+        --surface: #ffffff;
+        --surface-soft: #faf9fc;
+        --text: #25212b;
+        --muted: #6f6877;
+        --border: #e6e1ea;
+        --primary: #6e3cbc;
+        --primary-dark: #51269b;
+        --primary-soft: #f1eafb;
+        --success: #207a5b;
+        --warning: #9c5d16;
+        --warning-soft: #fff7e8;
+        --code: #19151f;
+        --code-text: #eeeaf4;
+        --shadow: 0 18px 55px rgba(43, 27, 58, 0.08);
+        --radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.65;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid rgba(230, 225, 234, 0.85);
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(16px);
+      }
+
+      .topbar__inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: min(1180px, calc(100% - 40px));
+        min-height: 70px;
+        margin: 0 auto;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+      }
+
+      .brand__mark {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border-radius: 11px;
+        background: linear-gradient(145deg, #8a52d5, #5930a1);
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(89, 48, 161, 0.24);
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.84rem;
+        font-weight: 650;
+      }
+
+      .status::before {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #36a77f;
+        box-shadow: 0 0 0 4px #e6f6f0;
+        content: "";
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 230px minmax(0, 800px);
+        gap: 56px;
+        width: min(1180px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 56px 0 88px;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 112px;
+        align-self: start;
+      }
+
+      .sidebar__label {
+        margin: 0 0 13px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .sidebar nav {
+        display: grid;
+        gap: 5px;
+      }
+
+      .sidebar a {
+        padding: 8px 12px;
+        border-left: 2px solid transparent;
+        color: var(--muted);
+        font-size: 0.91rem;
+        text-decoration: none;
+        transition: 160ms ease;
+      }
+
+      .sidebar a:hover,
+      .sidebar a[aria-current="true"] {
+        border-color: var(--primary);
+        color: var(--primary-dark);
+        background: linear-gradient(90deg, var(--primary-soft), transparent);
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 42px;
+        padding: 46px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .hero::after {
+        position: absolute;
+        top: -85px;
+        right: -70px;
+        width: 240px;
+        height: 240px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(137, 82, 213, 0.19), transparent 68%);
+        content: "";
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 16px;
+        color: var(--primary);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+        letter-spacing: -0.035em;
+      }
+
+      h1 {
+        max-width: 680px;
+        margin: 0;
+        font-size: clamp(2.15rem, 5vw, 3.75rem);
+      }
+
+      .hero p {
+        max-width: 680px;
+        margin: 22px 0 0;
+        color: var(--muted);
+        font-size: 1.08rem;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 28px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 11px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface-soft);
+        color: #514a58;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.78rem;
+        font-weight: 650;
+        text-decoration: none;
+        transition: 160ms ease;
+      }
+
+      .chip:hover,
+      .chip:focus-visible {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+      }
+
+      .chip--alternate {
+        border-style: dashed;
+      }
+
+      section {
+        scroll-margin-top: 100px;
+        margin-top: 54px;
+      }
+
+      section:first-of-type {
+        margin-top: 0;
+      }
+
+      h2 {
+        margin: 0 0 14px;
+        font-size: clamp(1.5rem, 3vw, 2rem);
+      }
+
+      h3 {
+        margin: 30px 0 12px;
+        font-size: 1.08rem;
+      }
+
+      p {
+        margin: 0 0 18px;
+      }
+
+      .lead {
+        color: var(--muted);
+        font-size: 1.02rem;
+      }
+
+      code {
+        padding: 0.14em 0.38em;
+        border-radius: 5px;
+        background: var(--primary-soft);
+        color: var(--primary-dark);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.88em;
+      }
+
+      .endpoint {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: 22px 0;
+        padding: 18px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+      }
+
+      .method {
+        flex: 0 0 auto;
+        padding: 5px 9px;
+        border-radius: 7px;
+        background: #e6f6f0;
+        color: var(--success);
+        font-size: 0.74rem;
+        font-weight: 850;
+      }
+
+      .endpoint code {
+        overflow-x: auto;
+        padding: 0;
+        background: none;
+        color: var(--text);
+        font-size: 0.9rem;
+        white-space: nowrap;
+      }
+
+      .code-block {
+        overflow: hidden;
+        margin: 20px 0 24px;
+        border: 1px solid #312b39;
+        border-radius: var(--radius);
+        background: var(--code);
+        box-shadow: 0 14px 32px rgba(25, 21, 31, 0.13);
+      }
+
+      .code-block__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 48px;
+        padding: 0 14px 0 18px;
+        border-bottom: 1px solid #312b39;
+        color: #aaa1b5;
+        font-size: 0.76rem;
+        font-weight: 700;
+      }
+
+      .copy-button {
+        border: 0;
+        border-radius: 7px;
+        padding: 7px 10px;
+        background: #2c2534;
+        color: #dcd5e4;
+        cursor: pointer;
+        font: inherit;
+        transition: 160ms ease;
+      }
+
+      .copy-button:hover {
+        background: #3a3045;
+        color: #fff;
+      }
+
+      pre {
+        overflow-x: auto;
+        margin: 0;
+        padding: 22px;
+      }
+
+      pre code {
+        padding: 0;
+        background: transparent;
+        color: var(--code-text);
+        font-size: 0.86rem;
+        line-height: 1.72;
+      }
+
+      .token-keyword {
+        color: #c5a3ff;
+      }
+
+      .token-string {
+        color: #a8dfc8;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-top: 24px;
+      }
+
+      .step {
+        min-height: 168px;
+        padding: 22px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .step__number {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        margin-bottom: 22px;
+        place-items: center;
+        border-radius: 9px;
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-size: 0.78rem;
+        font-weight: 850;
+      }
+
+      .step strong {
+        display: block;
+        margin-bottom: 7px;
+      }
+
+      .step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .callout {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 14px;
+        margin-top: 26px;
+        padding: 19px 20px;
+        border: 1px solid #f0d9b8;
+        border-radius: 14px;
+        background: var(--warning-soft);
+        color: #5f431f;
+      }
+
+      .callout__icon {
+        font-size: 1.15rem;
+      }
+
+      .callout strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--warning);
+      }
+
+      .callout p {
+        margin: 0;
+        font-size: 0.91rem;
+      }
+
+      .callout a {
+        color: inherit;
+        font-weight: 750;
+        text-underline-offset: 3px;
+      }
+
+      .api-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 24px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .api-list a {
+        display: block;
+        height: 100%;
+        padding: 18px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+        text-decoration: none;
+        transition: 160ms ease;
+      }
+
+      .api-list a:hover {
+        border-color: var(--primary);
+        box-shadow: 0 12px 28px rgba(43, 27, 58, 0.08);
+        transform: translateY(-2px);
+      }
+
+      .api-list strong,
+      .api-list span {
+        display: block;
+      }
+
+      .api-list strong {
+        margin-bottom: 4px;
+        color: var(--primary-dark);
+      }
+
+      .api-list span {
+        overflow-wrap: anywhere;
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.74rem;
+      }
+
+      .next-step {
+        margin-top: 58px;
+        padding: 32px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #6031a9, #7d49c5);
+        color: #fff;
+        box-shadow: 0 20px 45px rgba(96, 49, 169, 0.23);
+      }
+
+      .next-step h2 {
+        margin-bottom: 10px;
+      }
+
+      .next-step p {
+        max-width: 600px;
+        margin: 0;
+        color: #e9def8;
+      }
+
+      .next-step__links {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin: 22px 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .next-step__links a {
+        display: block;
+        padding: 11px 13px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .next-step__links a:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      .next-step .next-step__warning {
+        max-width: none;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+
+      footer {
+        margin-top: 58px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      @media (max-width: 860px) {
+        .layout {
+          grid-template-columns: 1fr;
+          gap: 0;
+          padding-top: 28px;
+        }
+
+        .sidebar {
+          display: none;
+        }
+
+        .hero {
+          padding: 34px 28px;
+        }
+
+        .steps {
+          grid-template-columns: 1fr;
+        }
+
+        .api-list,
+        .next-step__links {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .topbar__inner,
+        .layout {
+          width: min(100% - 28px, 1180px);
+        }
+
+        .status {
+          display: none;
+        }
+
+        .hero {
+          padding: 30px 22px;
+        }
+
+        .endpoint {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        pre {
+          padding: 18px;
+        }
+
+        .next-step {
+          padding: 26px 22px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        * {
+          transition: none !important;
+        }
+      }
+
+      /* Identidade visual inspirada no site institucional da Mindsight */
+      @font-face {
+        font-family: "Pathway Extreme";
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+        src: url("https://mindsight.com.br/wp-content/uploads/2023/12/PathwayExtreme-VariableFont_opszwdthwght.ttf")
+          format("truetype");
+      }
+
+      :root {
+        --background: #fafafa;
+        --surface-soft: #f7f7f7;
+        --text: #181818;
+        --muted: #5f5f63;
+        --border: #e3ddd8;
+        --primary: #7321e8;
+        --primary-dark: #5916bd;
+        --primary-soft: #f0e6ff;
+        --code: #08040d;
+        --shadow: 0 20px 60px rgba(24, 24, 24, 0.08);
+        --radius: 20px;
+      }
+
+      body {
+        font-family: "Pathway Extreme", ui-sans-serif, system-ui, sans-serif;
+        overflow-x: hidden;
+      }
+
+      .announcement {
+        position: relative;
+        z-index: 12;
+        background: #181818;
+        color: #fff;
+        font-size: 0.78rem;
+      }
+
+      .announcement__inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        width: min(1180px, calc(100% - 40px));
+        min-height: 43px;
+        margin: 0 auto;
+      }
+
+      .announcement p {
+        overflow: hidden;
+        margin: 0;
+        font-weight: 450;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .announcement strong {
+        font-weight: 800;
+      }
+
+      .announcement a {
+        flex: 0 0 auto;
+        font-weight: 750;
+        text-underline-offset: 3px;
+      }
+
+      .topbar {
+        z-index: 11;
+        border-color: rgba(255, 255, 255, 0.13);
+        background: rgba(115, 33, 232, 0.92);
+      }
+
+      .topbar__inner {
+        min-height: 76px;
+      }
+
+      .brand img {
+        display: block;
+        width: 150px;
+        height: auto;
+      }
+
+      .brand__mark,
+      .brand > span {
+        display: none;
+      }
+
+      .status {
+        padding: 11px 17px;
+        border-radius: 10px;
+        background: #fff;
+        color: #181818;
+        font-weight: 750;
+      }
+
+      .status::before {
+        box-shadow: none;
+      }
+
+      .topbar__right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .lang-switch {
+        display: inline-flex;
+        gap: 6px;
+      }
+
+      .lang-switch a {
+        padding: 6px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 999px;
+        color: #fff;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: 160ms ease;
+      }
+
+      .lang-switch a:hover {
+        border-color: rgba(255, 255, 255, 0.7);
+      }
+
+      .lang-switch a[aria-current="true"] {
+        background: #fff;
+        border-color: #fff;
+        color: #181818;
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        min-height: 610px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background:
+          radial-gradient(circle at 50% -15%, #9b59f0 0, transparent 42%),
+          radial-gradient(circle at 0 20%, rgba(115, 33, 232, 0.68), transparent 43%),
+          linear-gradient(180deg, #7321e8 0%, #351267 45%, #08040d 91%);
+        box-shadow: none;
+        color: #fff;
+      }
+
+      .hero::before,
+      .hero::after {
+        position: absolute;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        content: "";
+        pointer-events: none;
+      }
+
+      .hero::before {
+        top: -380px;
+        left: 50%;
+        width: 920px;
+        height: 920px;
+        transform: translateX(-50%);
+      }
+
+      .hero::after {
+        top: -215px;
+        right: auto;
+        left: 50%;
+        width: 590px;
+        height: 590px;
+        background: none;
+        transform: translateX(-50%);
+      }
+
+      .hero__inner {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        width: min(980px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 118px 0 130px;
+        text-align: center;
+      }
+
+      .eyebrow {
+        margin: 0 0 26px;
+        color: #d9c8f4;
+        font-size: 0.9rem;
+        letter-spacing: 0.1em;
+      }
+
+      h1 {
+        max-width: 920px;
+        font-size: clamp(2.7rem, 6.3vw, 5.4rem);
+        font-weight: 500;
+        letter-spacing: -0.055em;
+      }
+
+      .hero p {
+        max-width: 720px;
+        margin: 42px 0 0;
+        color: #c9bddd;
+        font-size: 1.15rem;
+        line-height: 1.45;
+      }
+
+      .chips {
+        justify-content: center;
+        margin-top: 38px;
+      }
+
+      .chip {
+        padding: 9px 14px;
+        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.09);
+        color: #fff;
+        backdrop-filter: blur(8px);
+      }
+
+      .chip:hover,
+      .chip:focus-visible {
+        border-color: rgba(255, 255, 255, 0.7);
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+
+      .chip--alternate {
+        border-color: rgba(255, 255, 255, 0.45);
+      }
+
+      .layout {
+        padding-top: 88px;
+      }
+
+      h2 {
+        font-size: clamp(1.7rem, 3vw, 2.35rem);
+        font-weight: 570;
+      }
+
+      .lead {
+        font-size: 1.08rem;
+      }
+
+      .endpoint {
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+      }
+
+      .method {
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .code-block {
+        border-color: #2a2430;
+      }
+
+      .copy-button {
+        border-radius: 9px;
+        padding: 8px 11px;
+        background: #322b3a;
+      }
+
+      .step {
+        border-radius: 22px;
+        transition: transform 180ms ease, box-shadow 180ms ease;
+      }
+
+      .step:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow);
+      }
+
+      .step__number {
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .next-step {
+        overflow: hidden;
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at 90% 0, #9b59f0, transparent 45%),
+          linear-gradient(135deg, #7321e8, #351267 68%, #08040d);
+      }
+
+      @media (max-width: 860px) {
+        .layout {
+          padding-top: 64px;
+        }
+
+        .hero {
+          min-height: 560px;
+          padding: 0;
+        }
+
+        .hero__inner {
+          padding: 96px 0 112px;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .announcement__inner,
+        .hero__inner {
+          width: min(100% - 28px, 1180px);
+        }
+
+        .announcement__inner {
+          justify-content: center;
+        }
+
+        .announcement__inner p {
+          display: none;
+        }
+
+        .brand img {
+          width: 130px;
+        }
+
+        .hero {
+          min-height: 520px;
+          padding: 0;
+        }
+
+        .hero__inner {
+          padding: 82px 0 100px;
+        }
+
+        .hero p {
+          margin-top: 28px;
+          font-size: 1rem;
+        }
+      }
+
+      /* Ajustes para navegação e leitura em telas pequenas */
+      @media (max-width: 860px) {
+        .layout > *,
+        main {
+          min-width: 0;
+        }
+
+        .sidebar {
+          display: block;
+          position: sticky;
+          top: 76px;
+          z-index: 8;
+          margin: -12px 0 28px;
+          padding: 12px 0 10px;
+          background: var(--background);
+        }
+
+        .sidebar__label {
+          margin-bottom: 8px;
+        }
+
+        .sidebar nav {
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          margin: 0 -2px;
+          padding: 0 2px 4px;
+          scrollbar-width: thin;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .sidebar a {
+          flex: 0 0 auto;
+          padding: 8px 11px;
+          border: 1px solid var(--border);
+          border-radius: 999px;
+          background: var(--surface);
+          white-space: nowrap;
+        }
+
+        .sidebar a:hover,
+        .sidebar a[aria-current="true"] {
+          border-color: var(--primary);
+          background: var(--primary-soft);
+        }
+
+        section {
+          scroll-margin-top: 150px;
+        }
+
+        .endpoint code {
+          min-width: 0;
+          width: 100%;
+        }
+
+        .code-block__header > span {
+          min-width: 0;
+          overflow-wrap: anywhere;
+        }
+
+        pre {
+          -webkit-overflow-scrolling: touch;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .topbar__inner,
+        .layout,
+        .announcement__inner,
+        .hero__inner {
+          width: calc(100% - 32px);
+        }
+
+        .topbar__inner {
+          min-height: 68px;
+        }
+
+        .sidebar {
+          top: 68px;
+          margin-top: -10px;
+        }
+
+        .hero {
+          min-height: 0;
+        }
+
+        .hero__inner {
+          padding: 70px 0 78px;
+        }
+
+        .eyebrow {
+          margin-bottom: 20px;
+          font-size: 0.76rem;
+        }
+
+        h1 {
+          font-size: clamp(2.35rem, 12vw, 3.7rem);
+        }
+
+        .hero p {
+          max-width: 33rem;
+          margin-top: 24px;
+          font-size: 1rem;
+        }
+
+        .chips {
+          width: 100%;
+          gap: 8px;
+          margin-top: 28px;
+        }
+
+        .chip {
+          min-height: 44px;
+          justify-content: center;
+          padding: 9px 12px;
+        }
+
+        .layout {
+          padding-top: 42px;
+          padding-bottom: 64px;
+        }
+
+        .endpoint {
+          gap: 10px;
+          margin: 18px 0;
+          padding: 15px;
+        }
+
+        .callout {
+          gap: 10px;
+          padding: 16px;
+        }
+
+        .step {
+          min-height: 0;
+          padding: 18px;
+        }
+
+        .step__number {
+          margin-bottom: 16px;
+        }
+
+        .next-step {
+          margin-top: 44px;
+          padding: 24px 18px;
+        }
+
+        footer {
+          margin-top: 44px;
+        }
+      }
+
+      /* Tabelas de referência (catálogo de eventos) */
+      .table-wrap {
+        overflow-x: auto;
+        margin: 18px 0 26px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+      }
+
+      .table-wrap table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.88rem;
+      }
+
+      .table-wrap th,
+      .table-wrap td {
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .table-wrap th {
+        background: var(--surface-soft);
+        color: var(--muted);
+        font-size: 0.74rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .table-wrap tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .table-wrap td:first-child {
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="announcement">
+      <div class="announcement__inner">
+        <p><strong>ATS EXTERNAL API:</strong> integration guide for reading and creating job postings.</p>
+        <a href="#overview">Jump to the guide&nbsp; →</a>
+      </div>
+    </div>
+
+    <header class="topbar">
+      <div class="topbar__inner">
+        <a class="brand" href="index.html" aria-label="Back to the documentation home">
+          <img
+            src="https://mindsight.com.br/wp-content/uploads/2026/08/logo_bysankhya.svg"
+            alt="Mindsight by Sankhya"
+          />
+        </a>
+        <div class="topbar__right">
+          <span class="status">Technical documentation</span>
+          <nav class="lang-switch" aria-label="Language">
+            <a href="ats-externa.html" aria-current="true">EN</a>
+            <a href="ats-externa.pt-br.html">PT-BR</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <header class="hero" id="inicio">
+      <div class="hero__inner">
+        <p class="eyebrow">ATS External API</p>
+        <h1>Integration Guide: Job Postings and Hired Applicants</h1>
+        <p>
+          A practical guide to integrate your system with the Mindsight Recruitment ATS:
+          authenticate with a key pair, list and create job postings, read the expandable
+          fields (such as the job requisition) and fetch hired applicants. Everything was
+          validated with real calls.
+        </p>
+        <div class="chips" aria-label="References">
+          <a class="chip" href="index.html">All Mindsight APIs</a>
+          <a class="chip chip--alternate" href="https://documenter.getpostman.com/view/48297903/2sB3HqHdmr" target="_blank" rel="noopener noreferrer">Official Postman reference</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar" aria-label="Page navigation">
+        <p class="sidebar__label">On this page</p>
+        <nav>
+          <a href="#overview" aria-current="true">Overview</a>
+          <a href="#key-pair">Key pair</a>
+          <a href="#authenticate">Authenticate</a>
+          <a href="#users">Users</a>
+          <a href="#list-jobs">List job postings</a>
+          <a href="#expand">Expandable fields</a>
+          <a href="#create-job">Create a job posting</a>
+          <a href="#hired">Hired applicants</a>
+          <a href="#behaviors">Behaviors</a>
+          <a href="#recipe">Python recipe</a>
+          <a href="#security">Security</a>
+        </nav>
+      </aside>
+
+      <main>
+
+        <section id="overview">
+          <h2>Overview</h2>
+          <p class="lead">
+            The Mindsight Recruitment ATS external API lets your system read users and job
+            postings, create new job postings, and fetch the hired applicants of each one.
+          </p>
+          
+          <div class="callout" role="note">
+            <span class="callout__icon" aria-hidden="true">ⓘ</span>
+            <div>
+              <strong>This page is different from the MindMatch guide</strong>
+              <p>MindMatch uses the <code>app.mindsight.com.br</code> host and an event journal. The ATS API described here uses the <code>recrutamento.mindsight.com.br</code> host, is <strong>per tenant</strong> (each company has its own prefix) and has its own set of endpoints. Both use the same kind of authentication (JWT-bearer), but with a different <code>client_id</code>, <code>aud</code> and token URL.</p>
+            </div>
+          </div>
+
+          <h3>Base URL</h3>
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>Base URL</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/</code></pre>
+          </div>
+          <p>
+            Replace <code>{tenant}</code> with your company's prefix (provided by Mindsight).
+            <strong>The trailing slash (<code>/</code>) is mandatory</strong>: without it the
+            server does not return JSON (see <a href="#behaviors">Observed behaviors</a>).
+          </p>
+
+          <h3>Endpoints</h3>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Method</th><th>Path</th><th>Purpose</th><th>Auth</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>POST</td><td><code>oauth/token/</code></td><td>Exchange the <code>client_assertion</code> for an access token</td><td>No</td></tr>
+                <tr><td>POST</td><td><code>oauth/revoke/</code></td><td>Revoke an access token</td><td>Bearer</td></tr>
+                <tr><td>GET</td><td><code>oauth/server-public-key/</code></td><td>Server public key (JWK), to validate tokens</td><td>No</td></tr>
+                <tr><td>GET</td><td><code>users/</code></td><td>List users (source of <code>manager_id</code> and <code>recruiter_id</code>)</td><td>Bearer</td></tr>
+                <tr><td>GET</td><td><code>job-postings/</code></td><td>List job postings, with filters, search, ordering and expandable fields</td><td>Bearer</td></tr>
+                <tr><td>POST</td><td><code>job-postings/</code></td><td>Create a job posting</td><td>Bearer</td></tr>
+                <tr><td>GET</td><td><code>job-postings/{id}/hired-applicants/</code></td><td>List the active hired applicants of a job posting</td><td>Bearer</td></tr>
+                </tbody>
+            </table>
+          </div>
+
+          <h3>General conventions</h3>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Topic</th><th>How it works</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Format</td><td>JSON in UTF-8. Dates are ISO 8601 (UTC, with <code>Z</code>).</td></tr>
+                <tr><td>Pagination</td><td>Lists return <code>count</code>, <code>next</code>, <code>previous</code> and <code>results</code>. Default of 10 items per page; use <code>page</code> and <code>page_size</code>.</td></tr>
+                <tr><td>Authorization</td><td>Header <code>Authorization: Bearer &lt;access_token&gt;</code> on every endpoint except the OAuth ones.</td></tr>
+                <tr><td>Message language</td><td>Validation errors are returned in Portuguese.</td></tr>
+                <tr><td>Single job posting</td><td>There is <strong>no</strong> <code>GET job-postings/{id}/</code>. To read one job posting, use the list with <code>?search={id}</code>.</td></tr>
+                </tbody>
+            </table>
+          </div>
+
+          <div class="steps" aria-label="Integration steps">
+            <article class="step">
+              <span class="step__number">01</span>
+              <strong>Generate the key pair</strong>
+              <p>Create the RSA pair and send the public key to Mindsight.</p>
+            </article>
+            <article class="step">
+              <span class="step__number">02</span>
+              <strong>Authenticate</strong>
+              <p>Sign the <code>client_assertion</code> and exchange it for a 1-hour access token.</p>
+            </article>
+            <article class="step">
+              <span class="step__number">03</span>
+              <strong>Consume the data</strong>
+              <p>List job postings (with <code>expand</code>), create job postings and fetch hired applicants.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="key-pair">
+          <h2>1. Generate your key pair</h2>
+          <p>
+            You sign the authentication requests with the <strong>private</strong> key;
+            Mindsight verifies them with the <strong>public</strong> key, which you send in
+            advance. In return you receive a <code>client_id</code> (UUID4), for example
+            <code>60955d10-6c30-4e73-bb2c-c9878b59007d</code>.
+          </p>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>Shell (OpenSSL)</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>openssl genrsa -out private.pem 2048
+openssl rsa -in private.pem -outform PEM -pubout -out public.pem</code></pre>
+          </div>
+          
+          <div class="callout" role="note">
+            <span class="callout__icon" aria-hidden="true">⚠</span>
+            <div>
+              <strong>Send the public key, keep the private one</strong>
+              <p>Only <code>public.pem</code> goes to Mindsight. <code>private.pem</code> never leaves your environment and must not be committed to git.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="authenticate">
+          <h2>2. Authenticate</h2>
+          <p>
+            The flow is OAuth 2.0 with <strong>Private Key JWT</strong> (RFC 7523): you build
+            a JWT called <code>client_assertion</code>, sign it with your private key
+            (RS256) and exchange it for an access token.
+          </p>
+
+          <h3>1. Build the client_assertion</h3>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>Header</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>{
+  &quot;alg&quot;: &quot;RS256&quot;,
+  &quot;typ&quot;: &quot;JWT&quot;
+}</code></pre>
+          </div>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>Body (claims)</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>{
+  &quot;iss&quot;: &quot;YOUR_CLIENT_ID&quot;,
+  &quot;sub&quot;: &quot;YOUR_CLIENT_ID&quot;,
+  &quot;aud&quot;: &quot;https://recrutamento.mindsight.com.br/&quot;,
+  &quot;iat&quot;: 1758000000,
+  &quot;exp&quot;: 1758003600,
+  &quot;jti&quot;: &quot;92ceb8f8-0ff7-479b-833e-87d99fc53185&quot;
+}</code></pre>
+          </div>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Claim</th><th>Value</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>iss</code> and <code>sub</code></td><td>Your <code>client_id</code>.</td></tr>
+                <tr><td><code>aud</code></td><td>Fixed: <code>https://recrutamento.mindsight.com.br/</code> (without the tenant).</td></tr>
+                <tr><td><code>jti</code></td><td>A new UUID4 for every assertion, used only once.</td></tr>
+                <tr><td><code>iat</code></td><td>Now, in Unix epoch. It cannot be more than 5 minutes in the past.</td></tr>
+                <tr><td><code>exp</code></td><td><code>iat</code> + 3600. It cannot be more than 60 minutes ahead of the server clock, nor in the past.</td></tr>
+                </tbody>
+            </table>
+          </div>
+
+          <h3>2. Exchange it for an access token</h3>
+          
+          <div class="endpoint" aria-label="Endpoint https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/oauth/token/">
+            <span class="method">POST</span>
+            <code>https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/oauth/token/</code>
+          </div>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>application/x-www-form-urlencoded</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+client_assertion=&lt;the signed JWT from step 1&gt;</code></pre>
+          </div>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>200 response</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>{
+  &quot;token_type&quot;: &quot;Bearer&quot;,
+  &quot;access_token&quot;: &quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...&quot;,
+  &quot;expires_in&quot;: 3600
+}</code></pre>
+          </div>
+
+          <h3>Python example</h3>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>Python</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>import time
+from uuid import uuid4
+
+import jwt  # pip install PyJWT cryptography
+import requests
+
+TENANT = &quot;your-tenant&quot;
+CLIENT_ID = &quot;YOUR_CLIENT_ID&quot;
+API_BASE = f&quot;https://recrutamento.mindsight.com.br/{TENANT}/external-api/v1/&quot;
+PRIVATE_KEY_PEM = open(&quot;private.pem&quot;).read()  # in production, load from a secrets manager
+
+
+def build_client_assertion() -&gt; str:
+    now = int(time.time())
+    claims = {
+        &quot;iss&quot;: CLIENT_ID,
+        &quot;sub&quot;: CLIENT_ID,
+        &quot;aud&quot;: &quot;https://recrutamento.mindsight.com.br/&quot;,
+        &quot;iat&quot;: now,
+        &quot;exp&quot;: now + 3600,
+        &quot;jti&quot;: str(uuid4()),
+    }
+    return jwt.encode(claims, PRIVATE_KEY_PEM, algorithm=&quot;RS256&quot;, headers={&quot;alg&quot;: &quot;RS256&quot;, &quot;typ&quot;: &quot;JWT&quot;})
+
+
+def get_access_token() -&gt; str:
+    response = requests.post(
+        f&quot;{API_BASE}oauth/token/&quot;,
+        data={
+            &quot;grant_type&quot;: &quot;urn:ietf:params:oauth:grant-type:jwt-bearer&quot;,
+            &quot;client_assertion_type&quot;: &quot;urn:ietf:params:oauth:client-assertion-type:jwt-bearer&quot;,
+            &quot;client_assertion&quot;: build_client_assertion(),
+        },
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()[&quot;access_token&quot;]
+
+
+session = requests.Session()
+session.headers[&quot;Authorization&quot;] = f&quot;Bearer {get_access_token()}&quot;</code></pre>
+          </div>
+
+          <h3>Token endpoint errors</h3>
+          <p>
+            Every problem with the JWT (expired, old <code>iat</code>, distant <code>exp</code>,
+            wrong <code>aud</code>, invalid signature, arbitrary text) returns the
+            <strong>same</strong> error, with no detail. To debug, check your machine clock,
+            <code>aud</code>, <code>client_id</code> and whether the private key matches the
+            public key you sent.
+          </p>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Situation</th><th>Status</th><th>Body</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Any problem with <code>client_assertion</code> or <code>client_assertion_type</code></td><td>400</td><td><code>{"error": "invalid_client"}</code></td></tr>
+                <tr><td><code>grant_type</code> different from the expected one</td><td>400</td><td><code>{"error": "unsupported_grant_type"}</code></td></tr>
+                <tr><td>URL without the trailing slash (<code>oauth/token</code>)</td><td>403</td><td>HTML error page (not JSON)</td></tr>
+                </tbody>
+            </table>
+          </div>
+
+          <h3>Revoke a token</h3>
+          <p>
+            Optional. Revokes the token in use or another token of yours. Once revoked, the
+            token answers <code>401</code>.
+          </p>
+          
+          <div class="endpoint" aria-label="Endpoint https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/oauth/revoke/">
+            <span class="method">POST</span>
+            <code>https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/oauth/revoke/</code>
+          </div>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>application/x-www-form-urlencoded</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>token=&lt;access_token&gt;
+token_type_hint=access_token   # optional</code></pre>
+          </div>
+          <p>Returns <code>200</code> with body <code>{}</code>.</p>
+
+          <h3>Server public key</h3>
+          <p>
+            Returns the server's public key in JWK format (<code>kty</code>, <code>alg</code>,
+            <code>use</code>, <code>n</code>, <code>e</code>), useful to validate the signature
+            of the issued access tokens. It does not require authentication.
+          </p>
+          
+          <div class="endpoint" aria-label="Endpoint https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/oauth/server-public-key/">
+            <span class="method">GET</span>
+            <code>https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/oauth/server-public-key/</code>
+          </div>
+
+          
+          <div class="callout" role="note">
+            <span class="callout__icon" aria-hidden="true">ⓘ</span>
+            <div>
+              <strong>The token lasts 1 hour</strong>
+              <p>There is no refresh token: when it expires, build a new <code>client_assertion</code> (with a new <code>jti</code>) and request another access token. The simplest pattern is one token per run of your routine.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="users">
+          <h2>3. Users</h2>
+          <p>
+            Lists the system users. The <code>id</code> values are used as
+            <code>manager_id</code> and <code>recruiter_id</code> when
+            <a href="#create-job">creating a job posting</a>.
+          </p>
+          
+          <div class="endpoint" aria-label="Endpoint https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/users/">
+            <span class="method">GET</span>
+            <code>https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/users/</code>
+          </div>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Parameter</th><th>Example</th><th>Effect</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>search</code></td><td><code>?search=maria</code></td><td>Searches part of the name or the email.</td></tr>
+                <tr><td><code>ordering</code></td><td><code>?ordering=-full_name</code></td><td>Orders by <code>full_name</code> (use <code>-</code> for descending).</td></tr>
+                <tr><td><code>page</code> / <code>page_size</code></td><td><code>?page_size=2&amp;page=2</code></td><td>Pagination.</td></tr>
+                </tbody>
+            </table>
+          </div>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>200 response</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>{
+  &quot;count&quot;: 47,
+  &quot;next&quot;: null,
+  &quot;previous&quot;: null,
+  &quot;results&quot;: [
+    { &quot;id&quot;: 51, &quot;full_name&quot;: &quot;Some recruiter&quot;, &quot;email&quot;: &quot;recruiter@example.com.br&quot; }
+  ]
+}</code></pre>
+          </div>
+        </section>
+
+        <section id="list-jobs">
+          <h2>4. List job postings</h2>
+          <p>
+            Returns the tenant's job postings, from newest to oldest. It is also the only way
+            to read a specific job posting.
+          </p>
+          
+          <div class="endpoint" aria-label="Endpoint https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/job-postings/">
+            <span class="method">GET</span>
+            <code>https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/job-postings/</code>
+          </div>
+
+          <h3>Query parameters</h3>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Parameter</th><th>Values</th><th>Effect</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>search</code></td><td>text or number</td><td>Searches <code>id</code> and <code>name</code>. <code>?search=129</code> returns only job posting 129.</td></tr>
+                <tr><td><code>status</code></td><td><code>IN_PROGRESS</code>, <code>CANCELED</code>, <code>SUSPENDED</code>, <code>FINALIZED</code></td><td>Filters by status. An invalid value returns 400.</td></tr>
+                <tr><td><code>external_publication</code></td><td><code>true</code> / <code>false</code></td><td>Externally published job postings.</td></tr>
+                <tr><td><code>work_model</code></td><td><code>REMOTE</code>, <code>HYBRID</code>, <code>IN_PERSON</code></td><td>Work model.</td></tr>
+                <tr><td><code>hire_model</code></td><td><code>ASSOCIATED</code>, <code>TALENT_POOL</code>, <code>EFFECTIVE_CLT</code>, <code>COOPERATED</code>, <code>INTERNSHIP</code>, <code>AUTONOMOUS_PJ</code>, <code>APRENDICE</code></td><td>Hiring model (values observed in the test tenant).</td></tr>
+                <tr><td><code>ordering</code></td><td><code>id</code>, <code>-created_at</code>, ...</td><td>Ordering. Prefix with <code>-</code> for descending.</td></tr>
+                <tr><td><code>expand</code></td><td>comma-separated list</td><td>Includes extra fields. See <a href='#expand'>Expandable fields</a>.</td></tr>
+                <tr><td><code>page</code> / <code>page_size</code></td><td>integers</td><td>Default of 10 per page. <code>page_size=1000</code> returned all 95 job postings at once. A page that does not exist returns 404.</td></tr>
+                </tbody>
+            </table>
+          </div>
+          <p>Filters can be combined, for example <code>?status=IN_PROGRESS&amp;work_model=REMOTE&amp;expand=request</code>.</p>
+
+          <h3>Fields of each job posting</h3>
+          <p>These fields are always returned, with no need for <code>expand</code>:</p>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>id</code></td><td>integer</td><td>Job posting identifier.</td></tr>
+                <tr><td><code>name</code></td><td>text</td><td>Job posting name.</td></tr>
+                <tr><td><code>status</code></td><td>text</td><td><code>IN_PROGRESS</code>, <code>CANCELED</code>, <code>SUSPENDED</code> or <code>FINALIZED</code>.</td></tr>
+                <tr><td><code>positions</code></td><td>integer</td><td>Number of positions.</td></tr>
+                <tr><td><code>limit_days</code></td><td>integer or null</td><td>Deadline in days.</td></tr>
+                <tr><td><code>start_salary_range</code>, <code>end_salary_range</code></td><td>numeric text or null</td><td>Salary range (e.g. <code>"5000.00"</code>).</td></tr>
+                <tr><td><code>competencies</code></td><td>list</td><td>Job posting competencies.</td></tr>
+                <tr><td><code>country</code>, <code>state</code>, <code>city</code></td><td>text or null</td><td>Location.</td></tr>
+                <tr><td><code>work_model</code>, <code>hire_model</code></td><td>text or null</td><td>See the filters above.</td></tr>
+                <tr><td><code>external_publication</code></td><td>boolean</td><td>Whether it is published externally.</td></tr>
+                <tr><td><code>external_publication_link</code>, <code>external_publication_start_at</code>, <code>external_publication_end_at</code></td><td>text or null</td><td>Link and window of the external publication.</td></tr>
+                <tr><td><code>unlisted_external_publication</code></td><td>boolean</td><td>Unlisted external publication.</td></tr>
+                <tr><td><code>netvagas_external_publication</code>, <code>google_for_jobs_external_publication</code>, <code>linkedin_external_publication</code>, <code>careerjet_external_publication</code>, <code>jooble_external_publication</code></td><td>boolean</td><td>Distribution on each job board.</td></tr>
+                <tr><td><code>finalization_date</code></td><td>text or null</td><td>Finalization date.</td></tr>
+                <tr><td><code>already_suspended</code>, <code>already_canceled</code></td><td>boolean</td><td>Whether the job posting has ever been suspended or canceled.</td></tr>
+                <tr><td><code>timezone</code></td><td>text or null</td><td>Job posting time zone.</td></tr>
+                <tr><td><code>publication_path_segment</code></td><td>text</td><td>Public URL segment (slug of the name, sometimes with the id).</td></tr>
+                <tr><td><code>function_id</code></td><td>integer or null</td><td>Associated function (MindMatch archetype).</td></tr>
+                <tr><td><code>created_at</code>, <code>updated_at</code></td><td>datetime</td><td>Creation and last update.</td></tr>
+                </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="expand">
+          <h2>5. Expandable fields</h2>
+          <p>
+            Six fields only show up when requested in <code>?expand=</code>. You can request
+            several, separated by commas:
+          </p>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>Example</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>GET https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/job-postings/?search=129&amp;expand=description,request,filled_positions,candidates_count,seniority_level</code></pre>
+          </div>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Field</th><th>What it brings</th><th>Shape</th><th>When it is empty</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>description</code></td><td>Job posting description in HTML</td><td>text</td><td>Empty text (<code>""</code>) on job postings created without a description.</td></tr>
+                <tr><td><code>request</code></td><td>The job requisition that originated the job posting</td><td>object</td><td><code>null</code> on job postings that did not come from a requisition.</td></tr>
+                <tr><td><code>vixtingjobposting</code></td><td>Vixting integration data</td><td>object</td><td><code>null</code> on tenants without Vixting.</td></tr>
+                <tr><td><code>filled_positions</code></td><td>Positions already filled</td><td>integer</td><td>0</td></tr>
+                <tr><td><code>candidates_count</code></td><td>Candidate counters</td><td>object</td><td>All counters at 0.</td></tr>
+                <tr><td><code>seniority_level</code></td><td>Seniority level</td><td>object</td><td>May be <code>null</code>.</td></tr>
+                </tbody>
+            </table>
+          </div>
+          
+          <div class="callout" role="note">
+            <span class="callout__icon" aria-hidden="true">⚠</span>
+            <div>
+              <strong>Without expand, the field simply does not exist</strong>
+              <p>Without <code>?expand=request</code> the <code>request</code> key is not even in the response. An unknown name in <code>expand</code> (e.g. <code>?expand=foo</code>) is ignored without an error, so a typo goes unnoticed: check that the expected key came back.</p>
+            </div>
+          </div>
+
+          <h3>request — the job requisition</h3>
+          <p>
+            Real result for job posting 129 (<code>?search=129&amp;expand=request</code>). The
+            <code>request</code> field carries the approved requisition that gave rise to the
+            job posting:
+          </p>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>results[0].request</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>{
+  &quot;id&quot;: 3,
+  &quot;name&quot;: &quot;verificação de conteúdo&quot;,
+  &quot;status&quot;: &quot;APPROVED&quot;,
+  &quot;type&quot;: &quot;SUBSTITUTION&quot;,
+  &quot;employee_name_being_replaced&quot;: &quot;123456&quot;,
+  &quot;positions&quot;: 1,
+  &quot;start_salary&quot;: &quot;5000.00&quot;,
+  &quot;end_salary&quot;: &quot;8000.00&quot;,
+  &quot;template_name&quot;: &quot;Requisição de Vaga&quot;,
+  &quot;branch&quot;: &quot;BU TI&quot;,
+  &quot;description&quot;: &quot;&lt;p style=\&quot;text-indent: 1em;\&quot;&gt;as&lt;/p&gt;&quot;,
+  &quot;claimant_commentary&quot;: &quot;Teste conteúdo&quot;,
+  &quot;claimant&quot;: 18,
+  &quot;work_model&quot;: &quot;REMOTE&quot;,
+  &quot;hire_model&quot;: &quot;INTERNSHIP&quot;,
+  &quot;created_at&quot;: &quot;2026-10-27T17:58:28.692429Z&quot;,
+  &quot;updated_at&quot;: &quot;2026-10-27T17:58:50.492982Z&quot;
+}</code></pre>
+          </div>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>request field</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>id</code></td><td>Identifier of the <strong>requisition</strong> (different from the job posting id).</td></tr>
+                <tr><td><code>name</code>, <code>template_name</code></td><td>Requisition name and the template used.</td></tr>
+                <tr><td><code>status</code></td><td>Requisition status. Seen: <code>APPROVED</code>.</td></tr>
+                <tr><td><code>type</code></td><td>Type. Seen: <code>SUBSTITUTION</code> (replacement) and <code>STAFF_INCREASE</code> (headcount increase).</td></tr>
+                <tr><td><code>employee_name_being_replaced</code></td><td>Who is being replaced (free text; empty when it is not a replacement).</td></tr>
+                <tr><td><code>positions</code>, <code>start_salary</code>, <code>end_salary</code></td><td>Requested positions and salary range.</td></tr>
+                <tr><td><code>branch</code></td><td>Branch/unit of the requisition.</td></tr>
+                <tr><td><code>description</code></td><td>Description in HTML.</td></tr>
+                <tr><td><code>claimant_commentary</code></td><td>Comment from the person who made the request (free text; see the tip below).</td></tr>
+                <tr><td><code>claimant</code></td><td>Id of the requesting user.</td></tr>
+                <tr><td><code>work_model</code>, <code>hire_model</code></td><td>Requested models (may appear only in some tenant versions).</td></tr>
+                <tr><td><code>created_at</code>, <code>updated_at</code></td><td>Requisition dates.</td></tr>
+                </tbody>
+            </table>
+          </div>
+          
+          <div class="callout" role="note">
+            <span class="callout__icon" aria-hidden="true">ⓘ</span>
+            <div>
+              <strong>Tip: complementary information</strong>
+              <p><code>claimant_commentary</code> is a single free-text field. In practice, companies usually create a <strong>second form for complementary information</strong> on the job requisition, instead of putting everything in this comment. If your integration needs structured data beyond the fields above, agree on it with the team that configures the requisition forms, and use the comment only as the requester's note.</p>
+            </div>
+          </div>
+          <p>
+            The official documentation shows, in one example, <code>"request": 1</code> (just
+            the id). In the tested tenant the field always came as an object when expanded.
+          </p>
+
+          <h3>candidates_count</h3>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>Response</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>&quot;candidates_count&quot;: {
+  &quot;total&quot;: 9,
+  &quot;active&quot;: 8,
+  &quot;inactive&quot;: 1,
+  &quot;given_up&quot;: 0
+}</code></pre>
+          </div>
+
+          <h3>seniority_level</h3>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>Response</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>&quot;seniority_level&quot;: { &quot;id&quot;: 7, &quot;key&quot;: &quot;senior&quot;, &quot;level&quot;: &quot;Sênior&quot; }</code></pre>
+          </div>
+          <p>
+            Observed values: <code>intern</code> (Estagiário), <code>mid_level</code> (Pleno), <code>senior</code> (Sênior) and
+            <code>without_seniority</code> (Sem senioridade). Job postings created through the API start as
+            <code>without_seniority</code>. The <code>level</code> labels are returned in Portuguese.
+          </p>
+
+          <h3>vixtingjobposting</h3>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>Documented shape</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>&quot;vixtingjobposting&quot;: {
+  &quot;id&quot;: 6,
+  &quot;company&quot;: &quot;76d4356b-e272-4f14-935d-91ba90017848&quot;,
+  &quot;affiliate&quot;: &quot;76d4356b-e272-4f14-935d-91ba90017848&quot;,
+  &quot;unit_business&quot;: &quot;60529&quot;,
+  &quot;job_role&quot;: &quot;60392&quot;,
+  &quot;department&quot;: &quot;60704&quot;
+}</code></pre>
+          </div>
+          <p>In the test tenant (no Vixting) the field was <code>null</code> on every job posting.</p>
+        </section>
+
+        <section id="create-job">
+          <h2>6. Create a job posting</h2>
+          
+          <div class="endpoint" aria-label="Endpoint https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/job-postings/">
+            <span class="method">POST</span>
+            <code>https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/job-postings/</code>
+          </div>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>name</code></td><td>Yes</td><td>Text, cannot be blank.</td></tr>
+                <tr><td><code>positions</code></td><td>Yes</td><td>Integer greater than or equal to 1.</td></tr>
+                <tr><td><code>description</code></td><td>No</td><td>Text/HTML. If omitted, the job posting has an empty description.</td></tr>
+                <tr><td><code>manager_id</code></td><td>No</td><td>Id of a user (see <a href='#users'>Users</a>). A non-existent id returns 400.</td></tr>
+                <tr><td><code>recruiter_id</code></td><td>No</td><td>Id of a user. It cannot be equal to <code>manager_id</code>.</td></tr>
+                </tbody>
+            </table>
+          </div>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>Minimal body (JSON)</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>{
+  &quot;name&quot;: &quot;Data Analyst&quot;,
+  &quot;positions&quot;: 1
+}</code></pre>
+          </div>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>Full body (JSON)</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>{
+  &quot;name&quot;: &quot;Data Analyst&quot;,
+  &quot;positions&quot;: 2,
+  &quot;description&quot;: &quot;&lt;p&gt;Description in &lt;b&gt;HTML&lt;/b&gt;&lt;/p&gt;&quot;,
+  &quot;manager_id&quot;: 51,
+  &quot;recruiter_id&quot;: 63
+}</code></pre>
+          </div>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>201 response</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>{ &quot;id&quot;: 131 }</code></pre>
+          </div>
+          <p>
+            The response carries only the id. The job posting is born with
+            <code>status = IN_PROGRESS</code>, null <code>work_model</code> and
+            <code>hire_model</code>, <em>Sem senioridade</em> seniority and a
+            <code>publication_path_segment</code> derived from the name. The body is also
+            accepted as <code>application/x-www-form-urlencoded</code>.
+          </p>
+
+          <h3>Validation errors (400)</h3>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Situation</th><th>Response</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Empty body</td><td><code>{"name": ["Este campo é obrigatório."], "positions": ["Este campo é obrigatório."]}</code></td></tr>
+                <tr><td><code>positions</code> lower than 1</td><td><code>{"positions": ["Certifque-se de que este valor seja maior ou igual a 1."]}</code></td></tr>
+                <tr><td><code>name</code> blank</td><td><code>{"name": ["Este campo pode não estar em branco."]}</code></td></tr>
+                <tr><td><code>manager_id</code> equal to <code>recruiter_id</code></td><td><code>{"non_field_errors": ["O identificador do gestor e do recrutador não podem ser iguais."]}</code></td></tr>
+                <tr><td><code>manager_id</code> not found</td><td><code>{"non_field_errors": ["Gestor não encontrado."]}</code></td></tr>
+                </tbody>
+            </table>
+          </div>
+          
+          <div class="callout" role="note">
+            <span class="callout__icon" aria-hidden="true">⚠</span>
+            <div>
+              <strong>Unknown fields are silently ignored</strong>
+              <p>Sending <code>work_model</code>, <code>hire_model</code> or <code>status</code> on creation returns <code>201</code>, but those values are <strong>not applied</strong> (the job posting keeps null <code>work_model</code>/<code>hire_model</code> and <code>IN_PROGRESS</code>). Use only the five fields in the table.</p>
+            </div>
+          </div>
+          
+          <div class="callout" role="note">
+            <span class="callout__icon" aria-hidden="true">ⓘ</span>
+            <div>
+              <strong>There is no way to edit or delete through the API</strong>
+              <p>This external API only creates and reads job postings. To fix or remove a job posting created by mistake, use the platform. In a test environment, prefix the names (e.g. <code>TEST-</code>) so you can find them later with <code>?search=</code>.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="hired">
+          <h2>7. Hired applicants of a job posting</h2>
+          <p>
+            Returns the applicants who are, <strong>right now</strong>, in the Hired stage of
+            the job posting.
+          </p>
+          
+          <div class="endpoint" aria-label="Endpoint https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/job-postings/{id}/hired-applicants/">
+            <span class="method">GET</span>
+            <code>https://recrutamento.mindsight.com.br/{tenant}/external-api/v1/job-postings/{id}/hired-applicants/</code>
+          </div>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>200 response</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>{
+  &quot;count&quot;: 2,
+  &quot;next&quot;: null,
+  &quot;previous&quot;: null,
+  &quot;results&quot;: [
+    {
+      &quot;id&quot;: 164,
+      &quot;name&quot;: &quot;Candidato 1&quot;,
+      &quot;email&quot;: &quot;email1@email.com&quot;,
+      &quot;admission_date&quot;: &quot;2026-07-23&quot;,
+      &quot;phone&quot;: null,
+      &quot;job_posting_id&quot;: 122,
+      &quot;salary&quot;: 7.5,
+      &quot;subscription_date&quot;: &quot;2026-06-25T17:59:18.896535Z&quot;,
+      &quot;candidate_source_option&quot;: &quot;Banco de Talentos&quot;,
+      &quot;address_city&quot;: null,
+      &quot;address_state&quot;: null,
+      &quot;address_country&quot;: null,
+      &quot;match&quot;: null,
+      &quot;raw_potential&quot;: null,
+      &quot;cultural_fit&quot;: null,
+      &quot;logic&quot;: null,
+      &quot;social&quot;: null,
+      &quot;motivational&quot;: null
+    }
+  ]
+}</code></pre>
+          </div>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Field</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>id</code>, <code>name</code>, <code>email</code>, <code>phone</code></td><td>Applicant data. The phone is digits-only text (e.g. <code>5511911111111</code>) or <code>null</code>.</td></tr>
+                <tr><td><code>job_posting_id</code></td><td>Job posting id.</td></tr>
+                <tr><td><code>admission_date</code></td><td>Admission date. In the tested tenant it came as <code>YYYY-MM-DD</code> (the documentation shows a datetime; handle both formats).</td></tr>
+                <tr><td><code>salary</code></td><td>Salary (number).</td></tr>
+                <tr><td><code>subscription_date</code></td><td>When the applicant entered the job posting.</td></tr>
+                <tr><td><code>candidate_source_option</code></td><td>Applicant source (e.g. Banco de Talentos, Adicionado manualmente).</td></tr>
+                <tr><td><code>address_city</code>, <code>address_state</code>, <code>address_country</code></td><td>Address, when provided.</td></tr>
+                <tr><td><code>match</code>, <code>raw_potential</code>, <code>cultural_fit</code>, <code>logic</code>, <code>social</code>, <code>motivational</code></td><td>MindMatch scores, on a 0 to 1 scale according to the documentation. They are <code>null</code> when the applicant did not take the assessments.</td></tr>
+                </tbody>
+            </table>
+          </div>
+          <h3>Additional fields on request</h3>
+          <p>
+            Upon request to Mindsight support, the endpoint also returns
+            <code>cpf</code>, <code>rg</code>, <code>gender</code> (<code>MALE</code>, <code>FEMALE</code>, <code>OTHER</code>) and
+            <code>marital_status</code> (<code>SINGLE</code>, <code>MARRIED</code>, <code>DIVORCED</code>, <code>WIDOW</code>,
+            <code>CONCUBINAGE</code>, <code>SEPARATED</code>, <code>STABLE_UNION</code>, <code>OTHER</code>). These fields
+            did not appear in the test tenant, where the option is not enabled.
+          </p>
+          
+          <div class="callout" role="note">
+            <span class="callout__icon" aria-hidden="true">⚠</span>
+            <div>
+              <strong>Applicants who give up disappear from the list</strong>
+              <p>Applicants can give up during the Hired stage. A call made before they gave up included them; later calls do not. If you store the hired applicants in your system, compare on every sync and treat a disappearance as an exit.</p>
+            </div>
+          </div>
+          <p>
+            A job posting with no hired applicants returns <code>200</code> with <code>count: 0</code>.
+            A non-existent job posting returns <code>404</code> with <code>{"message": "Vaga não encontrada."}</code>.
+          </p>
+        </section>
+
+        <section id="behaviors">
+          <h2>8. Observed behaviors</h2>
+          <p>
+            Results of real tests against a demo tenant. These are behaviors the official
+            documentation does not detail and that tend to cause doubts during integration.
+          </p>
+          <h3>Response codes</h3>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Situation</th><th>Status</th><th>Body</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>No <code>Authorization</code> header</td><td>401</td><td><code>{"detail": "As credenciais de autenticação não foram fornecidas."}</code></td></tr>
+                <tr><td>Invalid, expired or revoked token</td><td>401</td><td><code>{"detail": "Credenciais de autenticação incorretas."}</code></td></tr>
+                <tr><td>Integration without permission</td><td>403</td><td><code>{"detail": "Integração não autorizada."}</code></td></tr>
+                <tr><td>Filter with an invalid value (e.g. <code>status=XXX</code>)</td><td>400</td><td><code>{"status": ["Faça uma escolha válida. XXX não é uma das escolhas disponíveis."]}</code></td></tr>
+                <tr><td><code>page</code> beyond the end</td><td>404</td><td><code>{"detail": "Página inválida."}</code></td></tr>
+                <tr><td>Non-existent job posting on <code>hired-applicants/</code></td><td>404</td><td><code>{"message": "Vaga não encontrada."}</code></td></tr>
+                <tr><td>Validation error on creation</td><td>400</td><td>Object with the field name and the list of messages</td></tr>
+                </tbody>
+            </table>
+          </div>
+          <h3>Pitfalls</h3>
+          
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Topic</th><th>What happens</th><th>What to do</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Trailing slash</td><td><code>GET job-postings</code> (no slash) returns <strong>200 with HTML</strong> from the front end, not JSON; <code>oauth/token</code> without a slash returns 403 in HTML.</td><td>Always end the URL with <code>/</code>. Check the <code>Content-Type</code> before calling <code>.json()</code>.</td></tr>
+                <tr><td>Single job posting</td><td><code>GET job-postings/129/</code> also returns the front-end HTML.</td><td>Use <code>?search=129</code> and read <code>results[0]</code>.</td></tr>
+                <tr><td>Invalid expand</td><td>An unknown name is ignored.</td><td>Check that the expected key came back in the response.</td></tr>
+                <tr><td>Fields not applied on creation</td><td>201 even when extra fields are ignored.</td><td>Send only <code>name</code>, <code>positions</code>, <code>description</code>, <code>manager_id</code>, <code>recruiter_id</code>.</td></tr>
+                <tr><td>Field names in the documentation</td><td>Some error examples mention <code>title</code>, but the real field is <code>name</code>; some example URLs show <code>opportunities/</code>, but the working path is <code>job-postings/</code>.</td><td>Use the paths and fields on this page.</td></tr>
+                <tr><td>Token error messages</td><td>Every JWT problem returns <code>invalid_client</code>.</td><td>Check the clock, <code>aud</code>, <code>client_id</code> and the key pair.</td></tr>
+                </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="recipe">
+          <h2>9. Complete Python recipe</h2>
+          <p>
+            A lean client that reuses the <code>get_access_token()</code> from step 2, walks
+            every page and reads a job posting with its expanded fields.
+          </p>
+          
+          <div class="code-block">
+            <div class="code-block__header">
+              <span>Python</span>
+              <button class="copy-button" type="button">Copy</button>
+            </div>
+            <pre><code>def paginate(session, path, **params):
+    # Walks every page and yields all the items.
+    url = f&quot;{API_BASE}{path}&quot;
+    while url:
+        response = session.get(url, params=params, timeout=30)
+        response.raise_for_status()
+        if &quot;application/json&quot; not in response.headers.get(&quot;Content-Type&quot;, &quot;&quot;):
+            raise RuntimeError(f&quot;Response is not JSON: check the trailing slash in {url}&quot;)
+        payload = response.json()
+        yield from payload[&quot;results&quot;]
+        url, params = payload[&quot;next&quot;], {}  # next already carries the parameters
+
+
+def get_job_posting(session, job_id, expand=&quot;request&quot;):
+    # There is no GET /job-postings/{id}/, so we use the search by id.
+    for job in paginate(session, &quot;job-postings/&quot;, search=job_id, expand=expand):
+        if job[&quot;id&quot;] == job_id:
+            return job
+    return None
+
+
+def create_job_posting(session, name, positions, **optional):
+    # optional accepts description, manager_id and recruiter_id.
+    response = session.post(
+        f&quot;{API_BASE}job-postings/&quot;,
+        json={&quot;name&quot;: name, &quot;positions&quot;: positions, **optional},
+        timeout=30,
+    )
+    if response.status_code == 400:
+        raise ValueError(response.json())
+    response.raise_for_status()
+    return response.json()[&quot;id&quot;]
+
+
+# Reads the job requisition of job posting 129
+job = get_job_posting(session, 129, expand=&quot;request,description,candidates_count&quot;)
+print(job[&quot;request&quot;][&quot;claimant_commentary&quot;])
+
+# All in-progress job postings, with candidate counters
+in_progress = list(paginate(session, &quot;job-postings/&quot;, status=&quot;IN_PROGRESS&quot;, expand=&quot;candidates_count&quot;))
+
+# Hired applicants of a job posting
+hired = list(paginate(session, &quot;job-postings/122/hired-applicants/&quot;))</code></pre>
+          </div>
+        </section>
+
+        <section id="security">
+          <h2>10. Security and operations</h2>
+          
+          <div class="callout" role="note">
+            <span class="callout__icon" aria-hidden="true">⚠</span>
+            <div>
+              <strong>Never expose your private key</strong>
+              <p>Keep it in a secrets manager or environment variable. Never in a git repository, a shared notebook, browser JavaScript or logs.</p>
+            </div>
+          </div>
+          <h3>Good practices</h3>
+          <ul>
+            <li>One token per run of your routine; re-authenticate at the start instead of keeping tokens between runs.</li>
+            <li>Revoke the token when you finish, if your policy requires it (<code>oauth/revoke/</code>).</li>
+            <li>Applicant data (email, phone, and CPF/RG when enabled) is personal data: apply data protection rules (LGPD) when storing it.</li>
+            <li>Handle off-pattern responses: check <code>Content-Type</code> and the status before reading the JSON.</li>
+          </ul>
+          <h3>Rotating the key pair</h3>
+          <p>
+            If the private key is compromised, generate a new pair and send the new public key
+            to Mindsight support, who will update your <code>client_id</code>.
+          </p>
+        </section>
+
+        <aside class="next-step">
+          <h2>Next steps</h2>
+          <p>
+            With authentication working, start with <code>users/</code> and
+            <code>job-postings/</code> to validate access and then create your first job posting.
+          </p>
+          <ul class="next-step__links" aria-label="Further reading">
+            <li>
+              <a href="https://documenter.getpostman.com/view/48297903/2sB3HqHdmr" target="_blank" rel="noopener noreferrer">Official Postman reference ↗</a>
+            </li>
+            <li><a href="index.html">All Mindsight APIs</a></li>
+          </ul>
+          <p class="next-step__warning">
+            <strong>Questions about credentials, tenant or additional fields (CPF, RG)?</strong>
+            Contact Mindsight support.
+          </p>
+        </aside>
+
+        <footer>ATS External API · Integration guide</footer>
+      </main>
+    </div>
+
+    <script>
+      const copyButtons = document.querySelectorAll(".copy-button");
+
+      copyButtons.forEach((button) => {
+        button.addEventListener("click", async () => {
+          const code = button.closest(".code-block").querySelector("code").innerText;
+
+          try {
+            await navigator.clipboard.writeText(code);
+            button.textContent = "Copied!";
+          } catch {
+            button.textContent = "Select the code";
+          }
+
+          window.setTimeout(() => {
+            button.textContent = "Copy";
+          }, 1800);
+        });
+      });
+
+      const sections = document.querySelectorAll("main section[id]");
+      const navigationLinks = document.querySelectorAll(".sidebar a");
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const visibleEntry = entries.find((entry) => entry.isIntersecting);
+
+          if (!visibleEntry) return;
+
+          navigationLinks.forEach((link) => {
+            const isCurrent = link.getAttribute("href") === `#${visibleEntry.target.id}`;
+            link.setAttribute("aria-current", String(isCurrent));
+          });
+        },
+        { rootMargin: "-20% 0px -70%", threshold: 0 },
+      );
+
+      sections.forEach((section) => observer.observe(section));
+    </script>
+  </body>
+</html>
